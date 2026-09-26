@@ -2435,6 +2435,7 @@
 
     // Initialize shuttle markers — Active route vehicles shown, Garage vehicles clustered
     function initTramMarkers() {
+        applyLiveGps(trams);
         const garageTrams = [];
 
         trams.forEach((tram, idx) => {
@@ -2690,8 +2691,41 @@
         marker.bindPopup(popupHtml);
     }
 
+    // ===== พิกัดจริงจาก GPS (ESP32) =====
+    // เก็บในหน่วยความจำเท่านั้น ห้ามเขียนลง localStorage เพราะจะถูกซิงก์ขึ้นเซิร์ฟเวอร์จากผู้ชมทุกคน
+    var liveGpsPositions = {};
+
+    function fetchLiveGps() {
+        return fetch('/api/gps/positions?t=' + Date.now(), { headers: { 'Accept': 'application/json' } })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (!data || !Array.isArray(data.positions)) return;
+                const next = {};
+                data.positions.forEach(p => {
+                    if (p.online && p.vehicle_id && p.lat !== null && p.lng !== null) {
+                        next[p.vehicle_id] = p;
+                    }
+                });
+                liveGpsPositions = next;
+            })
+            .catch(() => {});
+    }
+
+    // แทนที่ coords ของรถที่มี GPS ออนไลน์ด้วยพิกัดจริง (ไม่ยุ่งกับรถที่อยู่ใน Garage)
+    function applyLiveGps(tramList) {
+        if (!Array.isArray(tramList)) return;
+        tramList.forEach(t => {
+            const p = liveGpsPositions ? liveGpsPositions[t.id] : null;
+            if (p && !isVehicleInGarage(t)) {
+                t.coords = `${p.lat}, ${p.lng}`;
+                t.gps_live = true;
+            }
+        });
+    }
+
     function fetchSeatsLeft() {
         trams = getStorage("yru_trams_v18", defaultTrams);
+        applyLiveGps(trams);
         const garageTrams = [];
 
         // Sync globalCarStatus with latest tram statuses and ensure EV-01 / EV-02 driver_id
@@ -3204,10 +3238,10 @@
 
     setInterval(() => {
         fetchDriverStatusRealtime();
-        fetchSeatsLeft();
+        fetchLiveGps().then(fetchSeatsLeft);
     }, 4000);
     fetchDriverStatusRealtime();
-    fetchSeatsLeft();
+    fetchLiveGps().then(fetchSeatsLeft);
     startCallStatusPolling();
 
     // ===== แบบประเมินความพึงพอใจ =====

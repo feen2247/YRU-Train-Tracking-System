@@ -123,6 +123,41 @@ php artisan optimize:clear                      # ล้าง cache ของ c
 
 ถ้าข้อมูลรถหรือสถานะคนขับค้าง ให้เปิด `/clear-all-caches` เพื่อรีเซ็ต cache ที่ใช้ซิงก์ข้อมูลระหว่างผู้ใช้
 
+## GPS ติดรถ (ESP32)
+
+รถแต่ละคันติดอุปกรณ์ GPS (ESP32 + โมดูล GPS) ได้ 1 ตัว ESP32 จะส่งพิกัดขึ้นเว็บทุก 5 วินาที แล้วแผนที่หน้า `/home` จะแสดงตำแหน่งจริงของรถคันนั้นแทนตำแหน่งจำลอง
+
+**1. ตั้งค่าเว็บ** ใส่รหัสลับใน `.env` (ต้องตรงกับที่ใส่ใน ESP32) แล้วรัน migration
+
+```env
+GPS_DEVICE_KEY=ตั้งรหัสลับยาวๆ
+GPS_STALE_SECONDS=120   # ถ้าไม่ได้รับพิกัดเกินกี่วินาที ให้ถือว่า GPS ออฟไลน์
+```
+
+```bash
+php artisan migrate
+```
+
+**2. แฟลชโค้ดลง ESP32** เปิด [firmware/esp32_gps_tracker/esp32_gps_tracker.ino](firmware/esp32_gps_tracker/esp32_gps_tracker.ino) ด้วย Arduino IDE
+- ติดตั้งไลบรารี **TinyGPSPlus** และ **ArduinoJson** (v7) จาก Library Manager
+- แก้ `WIFI_SSID`, `WIFI_PASSWORD`, `SERVER_URL` และ `GPS_DEVICE_KEY` ที่ส่วนบนของไฟล์
+- ถ้าทดสอบกับเครื่องตัวเอง ให้รัน `php artisan serve --host=0.0.0.0` แล้วตั้ง `SERVER_URL` เป็น `http://<IP คอมพิวเตอร์>:8000` (ESP32 กับคอมต้องอยู่ WiFi เดียวกัน)
+- เปิด Serial Monitor (115200) จะเห็น `DEVICE_ID` เช่น `ESP32-A1B2C3` และ IP ของ ESP32
+
+**3. ผูก GPS กับรถ** ในหน้าแอดมิน ไปที่เมนู **อุปกรณ์ GPS** อุปกรณ์จะขึ้นในตารางเองหลังส่งพิกัดครั้งแรก แล้วเลือกรถในช่อง "ติดตั้งบนรถ" (1 GPS ต่อ 1 คัน รถที่มี GPS แล้วจะเลือกซ้ำไม่ได้)
+
+**API ที่เกี่ยวข้อง**
+
+| Method | URL | ใช้ทำอะไร |
+|---|---|---|
+| POST | `/api/gps/report` | ESP32 ส่งพิกัด (ต้องมี header `X-GPS-Key`) |
+| GET | `/api/gps/positions` | ตำแหน่งล่าสุดของรถที่ผูก GPS แล้ว (หน้าแผนที่ใช้) |
+| GET/POST | `/api/gps/devices` | รายการ / เพิ่มอุปกรณ์ (แอดมินเท่านั้น) |
+| POST | `/api/gps/devices/{id}/assign` | ผูกหรือยกเลิกการผูกกับรถ (แอดมินเท่านั้น) |
+| DELETE | `/api/gps/devices/{id}` | ลบอุปกรณ์ (แอดมินเท่านั้น) |
+
+ตัว ESP32 เองก็มี API `GET http://<IP ของ ESP32>/gps` คืนค่า JSON ตำแหน่งล่าสุด ไว้ทดสอบในวง WiFi เดียวกัน เว็บจริงไม่ได้ดึงจากตรงนี้ เพราะ ESP32 บนรถไม่มี IP สาธารณะ และเว็บ https เรียก http ในวงแลนไม่ได้
+
 ## การ Deploy
 
 เซิร์ฟเวอร์จริงเป็น shared hosting อัปโหลดไฟล์ผ่าน FTP (สคริปต์อยู่ใน `_scripts/deployment/`) ไฟล์ `index.php` และ `.htaccess` ที่ root ของโปรเจกต์จะส่งทุก request ต่อไปยังโฟลเดอร์ `public/` ทำให้วางทั้งโปรเจกต์ไว้ใน web root ได้โดยตรง

@@ -28,6 +28,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // ESP32 GPS trackers (see GpsController and firmware/esp32_gps_tracker)
+    'gps' => [
+        'device_key' => env('GPS_DEVICE_KEY'),
+        'stale_seconds' => env('GPS_STALE_SECONDS', 120),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

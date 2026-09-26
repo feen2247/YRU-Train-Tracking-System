@@ -225,6 +225,8 @@
 
         @include('passenger.admin.pages.tram')
 
+        @include('passenger.admin.pages.gps')
+
 
 
         <!-- ========================================================================= -->
@@ -1455,6 +1457,7 @@ function showPage(pageId) {
         initWeeklyChart();
     }
     if (pageId === 'tram') renderTramTable();
+    if (pageId === 'gps' && typeof initGpsPage === 'function') initGpsPage();
     if (pageId === 'route') {
         initIntegratedRouteModule();
         switchIntegratedTab('stops');

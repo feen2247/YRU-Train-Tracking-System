@@ -2033,3 +2033,11 @@ Route::post('/api/maintenance/requests/{id}/director-approve', [\App\Http\Contro
 Route::post('/api/maintenance/requests/{id}/complete', [\App\Http\Controllers\MaintenanceController::class, 'completeRepair']);
 Route::delete('/api/maintenance/requests/{id}', [\App\Http\Controllers\MaintenanceController::class, 'destroy']);
 
+
+// --- ESP32 GPS Trackers (1 GPS = 1 คัน) ---
+Route::post('/api/gps/report', [\App\Http\Controllers\GpsController::class, 'report']);
+Route::get('/api/gps/positions', [\App\Http\Controllers\GpsController::class, 'positions']);
+Route::get('/api/gps/devices', [\App\Http\Controllers\GpsController::class, 'devices']);
+Route::post('/api/gps/devices', [\App\Http\Controllers\GpsController::class, 'store']);
+Route::post('/api/gps/devices/{deviceId}/assign', [\App\Http\Controllers\GpsController::class, 'assign']);
+Route::delete('/api/gps/devices/{deviceId}', [\App\Http\Controllers\GpsController::class, 'destroy']);

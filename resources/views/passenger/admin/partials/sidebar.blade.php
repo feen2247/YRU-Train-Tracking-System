@@ -22,6 +22,9 @@
             <button onclick="navigatePage('tram', this)" class="menu-btn flex items-center space-x-3 hover:bg-white/10 w-full px-4 py-2.5 rounded-lg text-left transition">
                 <i class="fas fa-bus w-5"></i><span>จัดการรถไฟฟ้า</span>
             </button>
+            <button onclick="navigatePage('gps', this)" class="menu-btn flex items-center space-x-3 hover:bg-white/10 w-full px-4 py-2.5 rounded-lg text-left transition">
+                <i class="fas fa-satellite-dish w-5"></i><span>อุปกรณ์ GPS</span>
+            </button>
             <button onclick="navigatePage('route', this)" class="menu-btn flex items-center space-x-3 hover:bg-white/10 w-full px-4 py-2.5 rounded-lg text-left transition">
                 <i class="fas fa-map-marked-alt w-5"></i><span>จุดจอดและเส้นทาง</span>
             </button>
