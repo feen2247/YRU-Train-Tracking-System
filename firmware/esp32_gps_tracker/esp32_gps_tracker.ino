@@ -33,7 +33,7 @@ const char* WIFI_PASSWORD = "51224647";
 const char* SERVER_URL = "http://192.168.0.104:8000";
 
 // ต้องตรงกับ GPS_DEVICE_KEY ในไฟล์ .env ของเว็บ
-const char* GPS_DEVICE_KEY = "CHANGE_ME";
+const char* GPS_DEVICE_KEY = "ESP32-6AAC1C";
 
 // ปล่อยว่างเพื่อใช้รหัสจาก MAC อัตโนมัติ หรือกำหนดเองได้ เช่น "GPS-01"
 String DEVICE_ID = "";
