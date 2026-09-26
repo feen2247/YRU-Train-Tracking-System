@@ -1,0 +1,586 @@
+The following changes were made by the USER to: c:\Users\ASUS\Downloads\YRU-Train-Tracking-System\resources\views\passenger\home.blade.php. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -180,7 +180,7 @@
+             <div id="profileDropdownMenu" class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 hidden opacity-0 transform scale-95 transition-all duration-200 origin-top-right z-50">
+                 <div class="py-1">
+                     <button onclick="openSurveyModal(); toggleProfileDropdown();" class="w-full group flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors text-left">
+-                        <i class="fas fa-star w-5 text-center mr-3 text-gray-400 group-hover:text-yellow-400"></i> 喔涏福喔班箑喔∴复喔權竸喔о覆喔∴笧喔多竾喔炧腑喙冟笀
++                        <i class="fas fa-star w-5 text-center mr-3 text-gray-400 group-hover:text-yellow-400"></i> ประเมินความพึงพอใจ
+                     </button>
+                 </div>
+                 <div class="py-1">
+@@ -187,4 +187,4 @@
+-                        <i class="fas fa-sign-out-alt w-5 text-center mr-3"></i> 喔�腑喔佮笀喔侧竵喔｀赴喔氞笟
++                        <i class="fas fa-sign-out-alt w-5 text-center mr-3"></i> ออกจากระบบ
+                     </a>
+                 </div>
+             </div>
+@@ -191,11 +191,11 @@
+     </header>
+ 
+ 
+-    <!-- Modal 喙€喔｀傅喔⑧竵喔｀笘 -->
++    <!-- Modal เรียกรถ -->
+     <div id="callModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[100] p-4 backdrop-blur-sm">
+         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up">
+             <div class="bg-pink-600 p-4 text-white flex justify-between items-center">
+-                <h3 class="font-bold"><i class="fas fa-paper-plane mr-2"></i>喔�箞喔囙釜喔编笉喔嵿覆喔撪箑喔｀傅喔⑧竵 EV</h3>
++                <h3 class="font-bold"><i class="fas fa-paper-plane mr-2"></i>ส่งสัญญาณเรียก EV</h3>
+                 <button onclick="closeCallModal()" class="text-white/80 hover:text-white"><i class="fas fa-times"></i></button>
+             </div>
+             
+@@ -202,20 +202,20 @@
+                 <div id="no-ev-warning" class="hidden bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs font-semibold items-center gap-2">
+                     <i class="fas fa-exclamation-circle text-red-500"></i>
+-                    <span>喔傕笓喔班笝喔掂箟喙勦浮喙堗浮喔掂福喔栢箘喔熰笩喙夃覆喙冟斧喙夃笟喔｀复喔佮覆喔｀笂喔编箞喔о竸喔｀覆喔� (喔�涪喔膏笖喔炧副喔�/喔傕副喔斷競喙夃腑喔�/喔�复喙夃笝喔�父喔斷福喔�笟喔о复喙堗竾)</span>
+-                </div>
+-                <div>
+-                    <label class="block text-sm font-semibold text-slate-600 mb-2">喔曕赋喙佮斧喔權箞喔囙競喔�竾喔勦父喔� (喔堗父喔斷箑喔｀复喙堗浮喔曕箟喔�)</label>
++                    <span>ขณะนี้ไม่มีรถไฟฟ้าให้บริการชั่วคราว (หยุดพัก/ขัดข้อง/สิ้นสุดรอบวิ่ง)</span>
++                </div>
++                <div>
++                    <label class="block text-sm font-semibold text-slate-600 mb-2">ตำแหน่งของคุณ (จุดเริ่มต้น)</label>
+                     <div class="relative">
+                         <i class="fas fa-map-marker-alt absolute left-3 top-3 text-pink-500"></i>
+                         <select id="callLocation" class="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-pink-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+-                            <option value="">-- 喙€喔ム阜喔�竵喔堗父喔斷笚喔掂箞喔勦父喔撪腑喔⑧腹喙� --</option>
+-                            <option value="1">喔涏福喔班笗喔灌斧喔ム副喔囙浮喔�.</option>
+-                            <option value="2">喔曕付喔佮辅喔脆弗喔涏赴</option>
+-                            <option value="3">喔ㄠ腹喔權涪喙屶抚喔脆笚喔⑧覆喔ㄠ覆喔�笗喔｀箤</option>
+-                            <option value="4">喔勦笓喔班抚喔脆笚喔⑧覆喔ㄠ覆喔�笗喔｀箤</option>
+-                            <option value="5">喔勦笓喔班釜喔编竾喔勦浮喔ㄠ覆喔�笗喔｀箤</option>
+-                            <option value="6">喔�覆喔勦覆喔｀箑喔｀傅喔⑧笝20</option>
+-                            <option value="7">喔勦笓喔班抚喔脆笚喔⑧覆喔佮覆喔｀笀喔编笖喔佮覆喔�</option>
++                            <option value="">-- เลือกจุดที่คุณอยู่ --</option>
++                            <option value="1">ประตูหลังมอ.</option>
++                            <option value="2">ตึกศิลปะ</option>
++                            <option value="3">ศูนย์วิทยาศาสตร์</option>
++                            <option value="4">คณะวิทยาศาสตร์</option>
++                            <option value="5">คณะสังคมศาสตร์</option>
++                            <option value="6">อาคารเรียน20</option>
++                            <option value="7">คณะวิทยาการจัดการ</option>
+                         </select>   
+                 </div>
+                 </div>
+@@ -222,22 +222,22 @@
+                 <div>
+-                    <label class="block text-sm font-semibold text-slate-600 mb-2">喔曕赋喙佮斧喔權箞喔囙笡喔ム覆喔⑧笚喔侧竾</label>
++                    <label class="block text-sm font-semibold text-slate-600 mb-2">ตำแหน่งปลายทาง</label>
+                     <div class="relative">
+                         <i class="fas fa-location-arrow absolute left-3 top-3 text-pink-500"></i>
+                         <select id="callDestination" class="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-pink-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+-                            <option value="">-- 喙€喔ム阜喔�竵喔堗父喔斷笡喔ム覆喔⑧笚喔侧竾 --</option>
+-                            <option value="1">喔涏福喔班笗喔灌斧喔ム副喔囙浮喔�.</option>
+-                            <option value="2">喔曕付喔佮辅喔脆弗喔涏赴</option>
+-                            <option value="3">喔ㄠ腹喔權涪喙屶抚喔脆笚喔⑧覆喔ㄠ覆喔�笗喔｀箤</option>
+-                            <option value="4">喔勦笓喔班抚喔脆笚喔⑧覆喔ㄠ覆喔�笗喔｀箤</option>
+-                            <option value="5">喔勦笓喔班釜喔编竾喔勦浮喔ㄠ覆喔�笗喔｀箤</option>
+-                            <option value="6">喔�覆喔勦覆喔｀箑喔｀傅喔⑧笝20</option>
+-                            <option value="7">喔勦笓喔班抚喔脆笚喔⑧覆喔佮覆喔｀笀喔编笖喔佮覆喔�</option>
+-                        </select>
+-                    </div>
+-                </div>
+-
+-                <div>
+-                    <label class="block text-sm font-semibold text-slate-600 mb-2">喔堗赋喔權抚喔權笢喔灌箟喙傕笖喔⑧釜喔侧福</label>
++                            <option value="">-- เลือกจุดปลายทาง --</option>
++                            <option value="1">ประตูหลังมอ.</option>
++                            <option value="2">ตึกศิลปะ</option>
++                            <option value="3">ศูนย์วิทยาศาสตร์</option>
++                            <option value="4">คณะวิทยาศาสตร์</option>
++                            <option value="5">คณะสังคมศาสตร์</option>
++                            <option value="6">อาคารเรียน20</option>
++                            <option value="7">คณะวิทยาการจัดการ</option>
++                        </select>
++                    </div>
++                </div>
++
++                <div>
++                    <label class="block text-sm font-semibold text-slate-600 mb-2">จำนวนผู้โดยสาร</label>
+                     <div class="flex items-center gap-4 bg-slate-100 p-2 rounded-xl justify-between">
+                         <button onclick="updatePax(-1)" class="w-10 h-10 bg-white rounded-lg shadow-sm text-pink-600 font-bold">-</button>
+                         <div class="text-center">
+@@ -244,4 +244,4 @@
+-                            <span class="text-xs text-slate-400 block">喔勦笝</span>
++                            <span class="text-xs text-slate-400 block">คน</span>
+                         </div>
+                         <button onclick="updatePax(1)" class="w-10 h-10 bg-white rounded-lg shadow-sm text-pink-600 font-bold">+</button>
+                     </div>
+@@ -248,12 +248,12 @@
+ 
+                 <button id="btnSubmitCall" onclick="submitCall()" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-2xl shadow-lg shadow-pink-200 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none disabled:cursor-not-allowed">
+-                    喔⑧阜喔權涪喔编笝喔佮覆喔｀箑喔｀傅喔⑧竵
+-                </button>
+-            </div>
+-        </div>
+-    </div>
+-
+-    <!-- 喙佮笟喔氞笡喔｀赴喙€喔∴复喔權竸喔о覆喔∴笧喔多竾喔炧腑喙冟笀 Modal -->
++                    ยืนยันการเรียก
++                </button>
++            </div>
++        </div>
++    </div>
++
++    <!-- แบบประเมินความพึงพอใจ Modal -->
+     <div id="surveyModal" class="survey-modal-overlay">
+         <div class="survey-card">
+             <!-- Header -->
+@@ -260,7 +260,7 @@
+                 <div class="flex justify-between items-center">
+                     <div>
+-                        <h3 class="font-bold text-lg leading-tight">馃搵 喙佮笟喔氞笡喔｀赴喙€喔∴复喔權竸喔о覆喔∴笧喔多竾喔炧腑喙冟笀</h3>
+-                        <p class="text-pink-200 text-xs mt-0.5">喔佮覆喔｀箖喔�箟喔氞福喔脆竵喔侧福喔｀笘喙勦笩喔熰箟喔� YRU EV</p>
++                        <h3 class="font-bold text-lg leading-tight">📋 แบบประเมินความพึงพอใจ</h3>
++                        <p class="text-pink-200 text-xs mt-0.5">การให้บริการรถไฟฟ้า YRU EV</p>
+                     </div>
+                     <button onclick="closeSurveyModal()" class="text-white/70 hover:text-white text-xl leading-none">&times;</button>
+                 </div>
+@@ -267,88 +267,88 @@
+ 
+-            <!-- 喙佮笟喔氞笩喔�福喙屶浮 -->
++            <!-- แบบฟอร์ม -->
+             <div id="surveyFormSection" class="p-5 space-y-5">
+ 
+-                <!-- 喔傕箟喔� 1 -->
+-                <div class="bg-pink-50 rounded-xl p-4">
+-                    <p class="text-sm font-semibold text-slate-700 mb-2">1. 喔勦抚喔侧浮喔�父喔犩覆喔� 喔佮福喔脆涪喔� 喔∴覆喔｀涪喔侧笚喔傕腑喔囙箑喔堗箟喔侧斧喔權箟喔侧笚喔掂箞</p>
++                <!-- ข้อ 1 -->
++                <div class="bg-pink-50 rounded-xl p-4">
++                    <p class="text-sm font-semibold text-slate-700 mb-2">1. ความสุภาพ กริยา มารยาทของเจ้าหน้าที่</p>
+                     <div class="star-group" id="q1">
+-                        <input type="radio" name="q1" id="q1s5" value="5"><label for="q1s5" title="喔斷傅喔∴覆喔�">鈽�</label>
+-                        <input type="radio" name="q1" id="q1s4" value="4"><label for="q1s4" title="喔斷傅">鈽�</label>
+-                        <input type="radio" name="q1" id="q1s3" value="3"><label for="q1s3" title="喔涏覆喔權竵喔ム覆喔�">鈽�</label>
+-                        <input type="radio" name="q1" id="q1s2" value="2"><label for="q1s2" title="喔炧腑喙冟笂喙�">鈽�</label>
+-                        <input type="radio" name="q1" id="q1s1" value="1"><label for="q1s1" title="喔勦抚喔｀笡喔｀副喔氞笡喔｀父喔�">鈽�</label>
+-                    </div>
+-                </div>
+-
+-                <!-- 喔傕箟喔� 2 -->
+-                <div class="bg-pink-50 rounded-xl p-4">
+-                    <p class="text-sm font-semibold text-slate-700 mb-2">2. 喙€喔堗箟喔侧斧喔權箟喔侧笚喔掂箞喙佮笗喙堗竾喔佮覆喔⑧釜喔膏笭喔侧笧 喙€喔｀傅喔⑧笟喔｀箟喔�涪 喙€喔�浮喔侧赴喔�浮喔曕覆喔∴弗喔编竵喔┼笓喔班斧喔權箟喔侧笚喔掂箞</p>
++                        <input type="radio" name="q1" id="q1s5" value="5"><label for="q1s5" title="ดีมาก">★</label>
++                        <input type="radio" name="q1" id="q1s4" value="4"><label for="q1s4" title="ดี">★</label>
++                        <input type="radio" name="q1" id="q1s3" value="3"><label for="q1s3" title="ปานกลาง">★</label>
++                        <input type="radio" name="q1" id="q1s2" value="2"><label for="q1s2" title="พอใช้">★</label>
++                        <input type="radio" name="q1" id="q1s1" value="1"><label for="q1s1" title="ควรปรับปรุง">★</label>
++                    </div>
++                </div>
++
++                <!-- ข้อ 2 -->
++                <div class="bg-pink-50 rounded-xl p-4">
++                    <p class="text-sm font-semibold text-slate-700 mb-2">2. เจ้าหน้าที่แต่งกายสุภาพ เรียบร้อย เหมาะสมตามลักษณะหน้าที่</p>
+                     <div class="star-group" id="q2">
+-                        <input type="radio" name="q2" id="q2s5" value="5"><label for="q2s5">鈽�</label>
+-                        <input type="radio" name="q2" id="q2s4" value="4"><label for="q2s4">鈽�</label>
+-                        <input type="radio" name="q2" id="q2s3" value="3"><label for="q2s3">鈽�</label>
+-                        <input type="radio" name="q2" id="q2s2" value="2"><label for="q2s2">鈽�</label>
+-                        <input type="radio" name="q2" id="q2s1" value="1"><label for="q2s1">鈽�</label>
+-                    </div>
+-                </div>
+-
+-                <!-- 喔傕箟喔� 3 -->
+-                <div class="bg-pink-50 rounded-xl p-4">
+-                    <p class="text-sm font-semibold text-slate-700 mb-2">3. 喔勦抚喔侧浮喙冟釜喙堗箖喔� 喔佮福喔班笗喔粪腑喔｀阜喔�福喙夃笝 喔∴傅喔勦抚喔侧浮喙€喔曕箛喔∴箖喔� 喙佮弗喔班竸喔о覆喔∴笧喔｀箟喔�浮喙冟笝喔佮覆喔｀笟喔｀复喔佮覆喔｀競喔�竾喙€喔堗箟喔侧斧喔權箟喔侧笚喔掂箞</p>
++                        <input type="radio" name="q2" id="q2s5" value="5"><label for="q2s5">★</label>
++                        <input type="radio" name="q2" id="q2s4" value="4"><label for="q2s4">★</label>
++                        <input type="radio" name="q2" id="q2s3" value="3"><label for="q2s3">★</label>
++                        <input type="radio" name="q2" id="q2s2" value="2"><label for="q2s2">★</label>
++                        <input type="radio" name="q2" id="q2s1" value="1"><label for="q2s1">★</label>
++                    </div>
++                </div>
++
++                <!-- ข้อ 3 -->
++                <div class="bg-pink-50 rounded-xl p-4">
++                    <p class="text-sm font-semibold text-slate-700 mb-2">3. ความใส่ใจ กระตือรือร้น มีความเต็มใจ และความพร้อมในการบริการของเจ้าหน้าที่</p>
+                     <div class="star-group" id="q3">
+-                        <input type="radio" name="q3" id="q3s5" value="5"><label for="q3s5">鈽�</label>
+-                        <input type="radio" name="q3" id="q3s4" value="4"><label for="q3s4">鈽�</label>
+-                        <input type="radio" name="q3" id="q3s3" value="3"><label for="q3s3">鈽�</label>
+-                        <input type="radio" name="q3" id="q3s2" value="2"><label for="q3s2">鈽�</label>
+-                        <input type="radio" name="q3" id="q3s1" value="1"><label for="q3s1">鈽�</label>
+-                    </div>
+-                </div>
+-
+-                <!-- 喔傕箟喔� 4 -->
+-                <div class="bg-pink-50 rounded-xl p-4">
+-                    <p class="text-sm font-semibold text-slate-700 mb-2">4. 喙€喔堗箟喔侧斧喔權箟喔侧笚喔掂箞喙冟斧喙夃笟喔｀复喔佮覆喔｀笗喙堗腑喔溹腹喙夃福喔编笟喔氞福喔脆竵喔侧福喙€喔�浮喔粪腑喔權竵喔编笝喔椸父喔佮福喔侧涪 喙傕笖喔⑧箘喔∴箞喙€喔ム阜喔�竵喔涏笍喔脆笟喔编笗喔�</p>
++                        <input type="radio" name="q3" id="q3s5" value="5"><label for="q3s5">★</label>
++                        <input type="radio" name="q3" id="q3s4" value="4"><label for="q3s4">★</label>
++                        <input type="radio" name="q3" id="q3s3" value="3"><label for="q3s3">★</label>
++                        <input type="radio" name="q3" id="q3s2" value="2"><label for="q3s2">★</label>
++                        <input type="radio" name="q3" id="q3s1" value="1"><label for="q3s1">★</label>
++                    </div>
++                </div>
++
++                <!-- ข้อ 4 -->
++                <div class="bg-pink-50 rounded-xl p-4">
++                    <p class="text-sm font-semibold text-slate-700 mb-2">4. เจ้าหน้าที่ให้บริการต่อผู้รับบริการเหมือนกันทุกราย โดยไม่เลือกปฏิบัติ</p>
+                     <div class="star-group" id="q4">
+-                        <input type="radio" name="q4" id="q4s5" value="5"><label for="q4s5">鈽�</label>
+-                        <input type="radio" name="q4" id="q4s4" value="4"><label for="q4s4">鈽�</label>
+-                        <input type="radio" name="q4" id="q4s3" value="3"><label for="q4s3">鈽�</label>
+-                        <input type="radio" name="q4" id="q4s2" value="2"><label for="q4s2">鈽�</label>
+-                        <input type="radio" name="q4" id="q4s1" value="1"><label for="q4s1">鈽�</label>
+-                    </div>
+-                </div>
+-
+-                <!-- 喔傕箟喔� 5 -->
+-                <div class="bg-pink-50 rounded-xl p-4">
+-                    <p class="text-sm font-semibold text-slate-700 mb-2">5. 喙€喔堗箟喔侧斧喔權箟喔侧笚喔掂箞喔曕腑喔氞競喙夃腑喔嬥副喔佮笘喔侧浮喔�涪喙堗覆喔囙笂喔编笖喙€喔堗笝 喙€喔佮傅喙堗涪喔о竵喔编笟喙€喔｀阜喙堗腑喔囙竵喔侧福喙冟斧喙夃笟喔｀复喔佮覆喔�</p>
++                        <input type="radio" name="q4" id="q4s5" value="5"><label for="q4s5">★</label>
++                        <input type="radio" name="q4" id="q4s4" value="4"><label for="q4s4">★</label>
++                        <input type="radio" name="q4" id="q4s3" value="3"><label for="q4s3">★</label>
++                        <input type="radio" name="q4" id="q4s2" value="2"><label for="q4s2">★</label>
++                        <input type="radio" name="q4" id="q4s1" value="1"><label for="q4s1">★</label>
++                    </div>
++                </div>
++
++                <!-- ข้อ 5 -->
++                <div class="bg-pink-50 rounded-xl p-4">
++                    <p class="text-sm font-semibold text-slate-700 mb-2">5. เจ้าหน้าที่ตอบข้อซักถามอย่างชัดเจน เกี่ยวกับเรื่องการให้บริการ</p>
+                     <div class="star-group" id="q5">
+-                        <input type="radio" name="q5" id="q5s5" value="5"><label for="q5s5">鈽�</label>
+-                        <input type="radio" name="q5" id="q5s4" value="4"><label for="q5s4">鈽�</label>
+-                        <input type="radio" name="q5" id="q5s3" value="3"><label for="q5s3">鈽�</label>
+-                        <input type="radio" name="q5" id="q5s2" value="2"><label for="q5s2">鈽�</label>
+-                        <input type="radio" name="q5" id="q5s1" value="1"><label for="q5s1">鈽�</label>
+-                    </div>
+-                </div>
+-
+-                <!-- 喔勦抚喔侧浮喔勦复喔斷箑喔�箛喔權箒喔ム赴喔傕箟喔�箑喔�笝喔�箒喔權赴 -->
++                        <input type="radio" name="q5" id="q5s5" value="5"><label for="q5s5">★</label>
++                        <input type="radio" name="q5" id="q5s4" value="4"><label for="q5s4">★</label>
++                        <input type="radio" name="q5" id="q5s3" value="3"><label for="q5s3">★</label>
++                        <input type="radio" name="q5" id="q5s2" value="2"><label for="q5s2">★</label>
++                        <input type="radio" name="q5" id="q5s1" value="1"><label for="q5s1">★</label>
++                    </div>
++                </div>
++
++                <!-- ความคิดเห็นและข้อเสนอแนะ -->
+                 <div>
+                     <label class="block text-sm font-semibold text-slate-700 mb-2">
+                         <i class="fas fa-comment-dots text-pink-500 mr-1"></i>
+-                        喔勦抚喔侧浮喔勦复喔斷箑喔�箛喔權箒喔ム赴喔傕箟喔�箑喔�笝喔�箒喔權赴喙€喔炧阜喙堗腑喔涏福喔编笟喔涏福喔膏竾喔佮覆喔｀箖喔�箟喔氞福喔脆竵喔侧福
++                        ความคิดเห็นและข้อเสนอแนะเพื่อปรับปรุงการให้บริการ
+                     </label>
+                     <textarea id="surveyComment" rows="4"
+                         class="w-full px-4 py-3 bg-slate-50 border border-pink-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-pink-400 resize-none transition-all"
+-                        placeholder="喔佮福喔膏笓喔侧箒喔�笖喔囙竸喔о覆喔∴竸喔脆笖喙€喔�箛喔�..."></textarea>
++                        placeholder="กรุณาแสดงความคิดเห็น..."></textarea>
+                 </div>
+ 
+                 <button class="survey-submit-btn" onclick="submitSurvey()">
+-                    <i class="fas fa-paper-plane mr-2"></i>喔�箞喔囙箒喔氞笟喔涏福喔班箑喔∴复喔�
+-                </button>
+-            </div>
+-
+-            <!-- 喔�笝喙夃覆喔傕腑喔氞竸喔膏笓 -->
++                    <i class="fas fa-paper-plane mr-2"></i>ส่งแบบประเมิน
++                </button>
++            </div>
++
++            <!-- หน้าขอบคุณ -->
+             <div id="surveySuccess" class="survey-success">
+                 <div class="check-circle"><i class="fas fa-check"></i></div>
+-                <h3 class="text-xl font-bold text-slate-700 mb-1">喔傕腑喔傕腑喔氞竸喔膏笓喔�赋喔�福喔编笟喔勦赋喔曕腑喔氞競喔�竾喔椸箞喔侧笝</h3>
+-                <p class="text-slate-500 text-sm">喔勦抚喔侧浮喔勦复喔斷箑喔�箛喔權競喔�竾喔椸箞喔侧笝喔堗赴喔娻箞喔о涪喔炧副喔掄笝喔侧竵喔侧福喔氞福喔脆竵喔侧福喔傕腑喔囙箑喔｀覆喙冟斧喙夃笖喔掂涪喔脆箞喔囙競喔多箟喔�</p>
++                <h3 class="text-xl font-bold text-slate-700 mb-1">ขอขอบคุณสำหรับคำตอบของท่าน</h3>
++                <p class="text-slate-500 text-sm">ความคิดเห็นของท่านจะช่วยพัฒนาการบริการของเราให้ดียิ่งขึ้น</p>
+             </div>
+         </div>
+     </div>
+@@ -355,185 +355,89 @@
+     <!-- Main Content Grid -->
+     <div class="flex-1 grid grid-cols-1 md:grid-cols-12 overflow-hidden min-h-0">
+-        <!-- Sidebar 喔嬥箟喔侧涪: 喔｀赴喔氞笟喔勦副喔斷竵喔｀腑喔� & 喙€喔∴笝喔灌箒喔椸箛喔� -->
+-        <aside class="md:col-span-4 bg-white border-r border-slate-200 flex flex-col h-[45vh] md:h-auto overflow-hidden relative z-50 shadow-sm">
+-            <!-- Tab Menu Headers -->
+-            <div class="flex-shrink-0 z-10 bg-slate-50 border-b border-slate-100">
+-                <div class="grid grid-cols-3 text-center text-xs font-bold text-slate-500">
+-                    <button onclick="switchTab('closest')" id="tab-closest" class="py-4 px-1 border-b-2 border-green-600 text-green-600 flex flex-col items-center gap-1 transition-all focus:outline-none bg-white">
+-                        <i class="fas fa-location-arrow text-sm"></i>
+-                        <span>喙冟竵喔ム箟喔勦父喔撪笚喔掂箞喔�父喔�</span>
+-                    </button>
+-                    <button onclick="switchTab('routes')" id="tab-routes" class="py-4 px-1 border-b-2 border-transparent hover:text-slate-700 flex flex-col items-center gap-1 transition-all focus:outline-none">
+-                        <i class="fas fa-route text-sm"></i>
+-                        <span>喔斷腹喔曕覆喔∴釜喔侧涪喔｀笘</span>
+-                    </button>
+-                    <button onclick="switchTab('schedule')" id="tab-schedule" class="py-4 px-1 border-b-2 border-transparent hover:text-slate-700 flex flex-col items-center gap-1 transition-all focus:outline-none">
+-                        <i class="fas fa-clock text-sm"></i>
+-                        <span>喔曕覆喔｀覆喔囙箑喔斷复喔權福喔�</span>
+-                    </button>
+-                </div>
+-            </div>
+-
+-            <!-- Tab Content Area -->
+-            <div class="flex-1 overflow-y-auto custom-scrollbar p-4 bg-slate-50/40 space-y-4">
+-                <!-- Tab 1: 喙冟竵喔ム箟喔勦父喔撪笚喔掂箞喔�父喔� -->
+-                <div id="content-closest" class="space-y-4">
+-                    <!-- Location Selector Card -->
+-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+-                        <div class="flex items-center justify-between">
+-                            <span class="text-xs font-black text-slate-500 tracking-wider uppercase">馃搷 喔曕赋喙佮斧喔權箞喔囙笡喔编笀喔堗父喔氞副喔權競喔�竾喔勦父喔�</span>
+-                            <button onclick="requestGeolocation()" class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center gap-1 focus:outline-none transition-colors">
+-                                <i class="fas fa-crosshairs"></i> 喙冟笂喙� GPS 喔堗福喔脆竾
+-                            </button>
+-                        </div>
+-                        <select id="userRefLocation" onchange="updateClosestTrams()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all">
+-                            <!-- Populated dynamically -->
+-                        </select>
+-                    </div>
+-
+-                    <!-- 3 Closest Trams List -->
+-                    <div class="space-y-3" id="closestTramsList">
+-                        <!-- Loaded dynamically via script -->
+-                    </div>
+-                </div>
+-
+-                <!-- Tab 2: 喔斷腹喔曕覆喔∴釜喔侧涪喔｀笘 -->
+-                <div id="content-routes" class="hidden space-y-4">
+-                    <!-- Route selection pills -->
+-                    <div class="grid grid-cols-2 gap-2">
+-                        <button onclick="selectRoute(1)" id="btn-route-1" class="py-2.5 px-3 rounded-xl border-2 border-green-500 bg-green-50 text-green-700 font-bold text-xs focus:outline-none transition-all flex items-center justify-center gap-2">
+-                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+-                            喔�覆喔⑧釜喔掂箑喔傕傅喔⑧抚
+-                        </button>
+-                        <button onclick="selectRoute(2)" id="btn-route-2" class="py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-bold text-xs focus:outline-none transition-all flex items-center justify-center gap-2">
+-                            <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+-                            喔�覆喔⑧釜喔掂笂喔∴笧喔�
+-                        </button>
+-                    </div>
+-
+-                    <!-- Timeline details of stations -->
+-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+-                        <h4 class="font-black text-green-700 text-xs tracking-wide mb-4" id="routeNameText">喔�覆喔⑧釜喔掂箑喔傕傅喔⑧抚 (喔溹箞喔侧笝喔堗父喔斷笀喔�笖 1-4)</h4>
+-                        
+-                        <!-- Stepper Line -->
+-                        <div class="relative pl-6 border-l-2 border-slate-200/80 space-y-6" id="routeTimeline">
+-                            <!-- Populated dynamically -->
+-                        </div>
+-                    </div>
+-                </div>
+-
+-                <!-- Tab 3: 喔曕覆喔｀覆喔囙箑喔斷复喔權福喔� -->
+-                <div id="content-schedule" class="hidden space-y-4">
+-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+-                        <div class="flex items-center gap-2 text-slate-700">
+-                            <i class="fas fa-calendar-alt text-green-600 text-sm"></i>
+-                            <h3 class="font-black text-xs uppercase tracking-wider text-slate-500">喔娻箞喔о竾喙€喔о弗喔侧箑喔斷复喔權福喔栢箘喔熰笩喙夃覆</h3>
+-                        </div>
+-                        <p class="text-xs text-slate-500 font-medium">喙€喔涏复喔斷箖喔�箟喔氞福喔脆竵喔侧福喔о副喔權笀喔编笝喔椸福喙� - 喔ㄠ父喔佮福喙� (喙€喔о箟喔權抚喔编笝喔�涪喔膏笖喔｀覆喔娻竵喔侧福)</p>
+-                        
+-                        <div class="border-t border-slate-100 pt-3 space-y-2.5">
+-                            <div class="flex justify-between items-center text-xs">
+-                                <span class="text-slate-400 font-semibold">喔｀腑喔氞箑喔娻箟喔� (喔娻副喙堗抚喙傕浮喔囙箑喔｀箞喔囙笖喙堗抚喔�)</span>
+-                                <span class="font-bold text-slate-700">08:00 - 10:30 喔�.</span>
+-                            </div>
+-                            <div class="flex justify-between items-center text-xs">
+-                                <span class="text-slate-400 font-semibold">喔｀腑喔氞竵喔ム覆喔囙抚喔编笝 (喔�弗喔编笟喔佮赴喔炧副喔�)</span>
+-                                <span class="font-bold text-slate-700">11:30 - 13:30 喔�.</span>
+-                            </div>
+-                            <div class="flex justify-between items-center text-xs">
+-                                <span class="text-slate-400 font-semibold">喔｀腑喔氞箑喔⑧箛喔� (喙€喔ム复喔佮箑喔｀傅喔⑧笝)</span>
+-                                <span class="font-bold text-slate-700">15:00 - 17:00 喔�.</span>
+-                            </div>
+-                            <div class="flex justify-between items-center text-xs pt-1">
+-                                <span class="text-slate-400 font-semibold">喔勦抚喔侧浮喔栢傅喙堗竵喔侧福喙€喔斷复喔權福喔�</span>
+-                                <span class="font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-full text-[10px]">喔椸父喔佮箚 15 喔權覆喔椸傅</span>
+-                            </div>
+-                        </div>
+-                    </div>
+-
+-                    <!-- Clean Timetable -->
+-                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+-                        <div class="p-3 bg-slate-50 border-b border-slate-100">
+-                            <span class="text-xs font-bold text-slate-600">喔曕覆喔｀覆喔囙箑喔斷复喔權福喔栢箘喔熰笩喙夃覆 YRU EV (喔｀覆喔⑧抚喔编笝)</span>
+-                        </div>
+-                        <div class="overflow-x-auto">
+-                            <table class="w-full text-left border-collapse text-xs">
+-                                <thead>
+-                                    <tr class="bg-slate-100/50 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+-                                        <th class="p-3">喙€喔椸傅喙堗涪喔о福喔�</th>
+-                                        <th class="p-3">喔�覆喔⑧福喔�</th>
+-                                        <th class="p-3 text-right">喙€喔о弗喔侧腑喔�竵喔｀笘</th>
+-                                    </tr>
+-                                </thead>
+-                                <tbody class="divide-y divide-slate-100 text-slate-600">
+-                                    <tr class="hover:bg-slate-50/50 transition-colors">
+-                                        <td class="p-3 font-semibold text-slate-700">喙€喔椸傅喙堗涪喔о笚喔掂箞 1</td>
+-                                        <td class="p-3"><span class="text-green-600 font-bold">喔�覆喔⑧釜喔掂箑喔傕傅喔⑧抚</span></td>
+-                                        <td class="p-3 font-bold text-slate-800 text-right">08:00 喔�.</td>
+-                                    </tr>
+-                                    <tr class="hover:bg-slate-50/50 transition-colors">
+-                                        <td class="p-3 font-semibold text-slate-700">喙€喔椸傅喙堗涪喔о笚喔掂箞 2</td>
+-                                        <td class="p-3"><span class="text-pink-500 font-bold">喔�覆喔⑧釜喔掂笂喔∴笧喔�</span></td>
+-                                        <td class="p-3 font-bold text-slate-800 text-right">08:15 喔�.</td>
+-                                    </tr>
+-                                    <tr class="hover:bg-slate-50/50 transition-colors">
+-                                        <td class="p-3 font-semibold text-slate-700">喙€喔椸傅喙堗涪喔о笚喔掂箞 3</td>
+-                                        <td class="p-3"><span class="text-green-600 font-bold">喔�覆喔⑧釜喔掂箑喔傕傅喔⑧抚</span></td>
+-                                        <td class="p-3 font-bold text-slate-800 text-right">08:30 喔�.</td>
+-                                    </tr>
+-                                    <tr class="hover:bg-slate-50/50 transition-colors">
+-                                        <td class="p-3 font-semibold text-slate-700">喙€喔椸傅喙堗涪喔о笚喔掂箞 4</td>
+-                                        <td class="p-3"><span class="text-pink-500 font-bold">喔�覆喔⑧釜喔掂笂喔∴笧喔�</span></td>
+-                                        <td class="p-3 font-bold text-slate-800 text-right">08:45 喔�.</td>
+-                                    </tr>
+-                                    <tr class="hover:bg-slate-50/50 transition-colors">
+-                                        <td class="p-3 font-semibold text-slate-700">喙€喔椸傅喙堗涪喔о笚喔掂箞 5</td>
+-                                        <td class="p-3"><span class="text-green-600 font-bold">喔�覆喔⑧釜喔掂箑喔傕傅喔⑧抚</span></td>
+-                                        <td class="p-3 font-bold text-slate-800 text-right">09:00 喔�.</td>
+-                                    </tr>
+-                                    <tr class="hover:bg-slate-50/50 transition-colors">
+-                                        <td class="p-3 font-semibold text-slate-700">喙€喔椸傅喙堗涪喔о笚喔掂箞 6</td>
+-                                        <td class="p-3"><span class="text-pink-500 font-bold">喔�覆喔⑧釜喔掂笂喔∴笧喔�</span></td>
+-                                        <td class="p-3 font-bold text-slate-800 text-right">09:15 喔�.</td>
+-                                    </tr>
+-                                </tbody>
+-                            </table>
+-                        </div>
+-                    </div>
+-                </div>
++        <!-- Sidebar ซ้าย: รายการจุดจอด -->
++        <aside class="md:col-span-4 bg-white border-r border-slate-200 flex flex-col h-[40vh] md:h-auto overflow-hidden relative z-50">
++            <!-- Header with pink top accent -->
++            <div class="flex-shrink-0 z-10" style="border-top: 4px solid #ec4899;">
++                <div class="p-5 bg-white border-b border-slate-100 shadow-sm">
++                    <div class="flex items-center gap-3">
++                        <i class="fas fa-list text-slate-600 text-xl"></i>
++                        <h2 class="text-lg font-black text-slate-700 tracking-wide leading-tight">รายชื่ออาคารและจุดจอด</h2>
++                    </div>
++                </div>
++            </div>
++
++            <!-- List จุดจอด -->
++            <div class="flex-1 overflow-y-auto custom-scrollbar p-4 relative bg-slate-50/30">
++                <script>
++                    const stations = [
++                        { id: 1, name: "ประตูหลังมอ.", type: "P", ev1_time: "Now", ev2_time: "15 นาที" },
++                        { id: 2, name: "ตึกศิลปะ", type: "P", ev1_time: "5 นาที", ev2_time: "20 นาที" },
++                        { id: 3, name: "ศูนย์วิทยาศาสตร์", type: "P", ev1_time: "10 นาที", ev2_time: "25 นาที" },
++                        { id: 4, name: "คณะวิทยาศาสตร์", type: "P", ev1_time: "15 นาที", ev2_time: "30 นาที" },
++                        { id: 5, name: "คณะสังคมศาสตร์", type: "P", ev1_time: "20 นาที", ev2_time: "Now" },
++                        { id: 6, name: "อาคารเรียน20", type: "P", ev1_time: "25 นาที", ev2_time: "5 นาที" },
++                        { id: 7, name: "คณะวิทยาการจัดการ", type: "P", ev1_time: "30 นาที", ev2_time: "10 นาที" },
++                    ];
++
++                    document.write(stations.map((s, idx) => `
++                        <div onclick="focusStation(${s.id})" class="flex items-center px-5 py-4 mb-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-pink-200 cursor-pointer transition-all group">
++                            <div class="flex-shrink-0 mr-4">
++                                <div class="bg-pink-100 text-pink-600 w-11 h-11 rounded-full flex items-center justify-center font-black text-lg group-hover:bg-pink-500 group-hover:text-white transition-colors">
++                                    ${s.id}
++                                </div>
++                            </div>
++                            <div class="flex-1 min-w-0 pr-2">
++                                <p class="text-[15px] font-bold text-slate-800 group-hover:text-pink-600 truncate transition-colors">${s.name}</p>
++                                <p class="text-xs text-slate-400 mt-0.5">${s.type === 'P' ? 'จุดจอดรถไฟฟ้า' : 'อาคารเรียน'}</p>
++                            </div>
++                            ${s.ev1_time !== '-' || s.ev2_time !== '-' ? `
++                            <div class="text-right flex-shrink-0 flex flex-col gap-1.5 justify-center">
++                                ${s.ev1_time !== '-' ? `
++                                <div class="flex items-center gap-2 justify-end">
++                                    <div class="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0"></div>
++                                    <span class="text-sm font-bold ${s.ev1_time === 'Now' ? 'text-green-500' : 'text-slate-600'}">${s.ev1_time}</span>
++                                </div>` : ''}
++                                ${s.ev2_time !== '-' ? `
++                                <div class="flex items-center gap-2 justify-end">
++                                    <div class="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0"></div>
++                                    <span class="text-sm font-bold ${s.ev2_time === 'Now' ? 'text-green-500' : 'text-slate-600'}">${s.ev2_time}</span>
++                                </div>` : ''}
++                            </div>` : ''}
++                        </div>
++                    `).join(''));
++                </script>
+             </div>
+         </aside>
+ 
+-        <!-- 喙佮笢喔權笚喔掂箞喔�弗喔编竵 -->
++        <!-- แผนที่หลัก -->
+         <main class="md:col-span-8 relative flex flex-col overflow-hidden" style="min-height:0;">
+             <div id="map" class="map-bg flex-1 relative z-0" style="min-height:0;">
+-                <!-- 喙佮笢喔權笚喔掂箞 Legend (bottom-left) -->
+-                <div class="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm px-3.5 py-2.5 rounded-2xl shadow-md border border-slate-100/70 z-[1000]">
+-                    <p class="text-[9px] font-black text-slate-400 mb-2 uppercase tracking-widest">喔曕赋喙佮斧喔權箞喔囙福喔栢笡喔编笀喔堗父喔氞副喔�</p>
+-                    <div class="flex flex-col gap-2" id="mapLegendContainer">
++
++                <!-- แผนที่ Legend (bottom-left) -->
++                <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl shadow-md border border-slate-100 z-[1000]">
++                    <p class="text-[9px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">ตำแหน่งรถ</p>
++                    <div class="flex flex-col gap-1.5" id="mapLegendContainer">
+                         <!-- Loaded dynamically from script -->
+                     </div>
+                 </div>
+-            </div>
+-
+-            <!-- Bottom Summary Bar (White-Gray Palette) -->
+-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200/80 relative z-50 flex-shrink-0">
++
++            </div>
++
++            <!-- Bottom bar -->
++            <div class="px-6 py-5 bg-white border-t border-slate-200 relative z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] flex-shrink-0">
+                 <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+-                    <!-- Status Display Summary -->
+-                    <div class="flex items-center gap-3 w-full sm:w-auto">
+-                        <div class="bg-green-100 text-green-600 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-inner">
+-                            <i class="fas fa-info-circle text-base animate-pulse"></i>
+-                        </div>
+-                        <div id="statusPassengerDisplay" class="text-slate-700 font-bold text-xs tracking-wide">
+-                            馃摙 <span class="text-green-600 font-black">喔勦副喔權笚喔掂箞 1</span> 喔佮赋喔ム副喔囙浮喔侧笘喔多竾喙冟笝 <span class="text-green-600 font-black">2 喔權覆喔椸傅</span> (喔堗父喔斷笀喔�笖喔椸傅喙� 1)
+-                        </div>
+-                    </div>
+-
+-                    <!-- Action buttons -->
++                    <div class="flex items-center gap-3">
++                        <div class="bg-blue-100 text-blue-600 p-3 rounded-2xl"><i class="fas fa-route text-xl"></i></div>
++                        <div id="statusPassengerDisplay">
++                            <p class="text-xs text-slate-400">สถานะการให้บริการ</p>
++                            <p class="text-sm font-bold text-slate-700">รถกำลังมุ่งหน้าไป: อาคารสังคมศาสตร์ (24)</p>
++                        </div>
++                    </div>
++
+                     <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+-                        <button onclick="openCallModal()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 text-sm">
++                        <button onclick="openCallModal()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 transition-all active:scale-95">
+                             <i class="fas fa-hand-paper"></i>
+-                            <span>喙€喔｀傅喔⑧竵喔｀笘喔椸傅喙堗笝喔掂箞</span>
++                            <span>เรียกรถที่นี่</span>
+                         </button>
+                     </div>
+                 </div>
+@@ -541,23 +541,12 @@
+     </div>
+ 
+ <script>
+-    // ===== Original Stations Data =====
+-    const stations = [
+-        { id: 1, name: "喔涏福喔班笗喔灌斧喔ム副喔囙浮喔�.", type: "P", ev1_time: "Now", ev2_time: "15 喔權覆喔椸傅" },
+-        { id: 2, name: "喔曕付喔佮辅喔脆弗喔涏赴", type: "P", ev1_time: "5 喔權覆喔椸傅", ev2_time: "20 喔權覆喔椸傅" },
+-        { id: 3, name: "喔ㄠ腹喔權涪喙屶抚喔脆笚喔⑧覆喔ㄠ覆喔�笗喔｀箤", type: "P", ev1_time: "10 喔權覆喔椸傅", ev2_time: "25 喔權覆喔椸傅" },
+-        { id: 4, name: "喔勦笓喔班抚喔脆笚喔⑧覆喔ㄠ覆喔�笗喔｀箤", type: "P", ev1_time: "15 喔權覆喔椸傅", ev2_time: "30 喔權覆喔椸傅" },
+-        { id: 5, name: "喔勦笓喔班釜喔编竾喔勦浮喔ㄠ覆喔�笗喔｀箤", type: "P", ev1_time: "20 喔權覆喔椸傅", ev2_time: "Now" },
+-        { id: 6, name: "喔�覆喔勦覆喔｀箑喔｀傅喔⑧笝20", type: "P", ev1_time: "25 喔權覆喔椸傅", ev2_time: "5 喔權覆喔椸傅" },
+-        { id: 7, name: "喔勦笓喔班抚喔脆笚喔⑧覆喔佮覆喔｀笀喔编笖喔佮覆喔�", type: "P", ev1_time: "30 喔權覆喔椸傅", ev2_time: "10 喔權覆喔椸傅" },
+-    ];
+-
+     // ===== Load Trams from LocalStorage =====
+     const defaultTrams = [
+-        { id: "EV-01", plate: "喔佮竸 1234 喔⑧赴喔ム覆", status: "喔炧福喙夃腑喔∴箖喔娻箟喔囙覆喔�" },
+-        { id: "EV-02", plate: "喔佮竸 5678 喔⑧赴喔ム覆", status: "喔炧福喙夃腑喔∴箖喔娻箟喔囙覆喔�" },
+-        { id: "EV-03", plate: "喔佮竸 9012 喔⑧赴喔ム覆", status: "喔｀笘喔傕副喔斷競喙夃腑喔�" },
+-        { id: "EV-04", plate: "喔佮竸 3456 喔⑧赴喔ム覆", status: "喔炧福喙夃腑喔∴箖喔娻箟喔囙覆喔�" }
++        { id: "EV-01", plate: "กค 1234 ยะลา", status: "พร้อมใช้งาน" },
++        { id: "EV-02", plate: "กค 5678 ยะลา", status: "พร้อมใช้งาน" },
++        { id: "EV-03", plate: "กค 9012 ยะลา", status: "รถขัดข้อง" },
++        { id: "EV-04", plate: "กค 3456 ยะลา", status: "พร้อมใช้งาน" }
+     ];
+ 
+     function getStorage(key, defaultData) {
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modifi
+<truncated 70 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

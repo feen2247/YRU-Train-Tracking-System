@@ -1,0 +1,162 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+
+class UserSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $users = [
+            [
+                'user_id' => 'USR-000001',
+                'employee_id' => '69001',
+                'username' => 'muhammad',
+                'prefix' => 'นาย',
+                'first_name' => 'มูฮัมหมัด',
+                'last_name' => 'ซอและ',
+                'name' => 'นายมูฮัมหมัด ซอและ',
+                'email' => 'muhammad@yru.ac.th',
+                'password' => Hash::make('69001'),
+                'user_role' => 'Administrator',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000002',
+                'employee_id' => '69002',
+                'username' => 'somchai',
+                'prefix' => 'ดร.',
+                'first_name' => 'สมชาย',
+                'last_name' => 'เรียนดี',
+                'name' => 'ดร.สมชาย เรียนดี',
+                'email' => 'somchai@yru.ac.th',
+                'password' => Hash::make('69002'),
+                'user_role' => 'Executive',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000003',
+                'employee_id' => '69003',
+                'username' => 'asmee',
+                'prefix' => 'นาย',
+                'first_name' => 'อัสมี',
+                'last_name' => 'มูเล็ง',
+                'name' => 'นายอัสมี มูเล็ง',
+                'email' => 'asmee@yru.ac.th',
+                'password' => Hash::make('69003'),
+                'user_role' => 'Driver',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000004',
+                'employee_id' => '69004',
+                'username' => 'arfan',
+                'prefix' => 'นาย',
+                'first_name' => 'อัรฟาน',
+                'last_name' => 'มะเระ',
+                'name' => 'นายอัรฟาน มะเระ',
+                'email' => 'arfan@yru.ac.th',
+                'password' => Hash::make('69004'),
+                'user_role' => 'Driver',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000005',
+                'employee_id' => '69005',
+                'username' => 'sufiyan',
+                'prefix' => 'นาย',
+                'first_name' => 'ซูเฟียน',
+                'last_name' => 'มะโละ',
+                'name' => 'นายซูเฟียน มะโละ',
+                'email' => 'sufiyan@yru.ac.th',
+                'password' => Hash::make('69005'),
+                'user_role' => 'Driver',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000006',
+                'employee_id' => '69006',
+                'username' => 'usman',
+                'prefix' => 'นาย',
+                'first_name' => 'อุสมาน',
+                'last_name' => 'สาและ',
+                'name' => 'นายอุสมาน สาและ',
+                'email' => 'usman@yru.ac.th',
+                'password' => Hash::make('69006'),
+                'user_role' => 'Driver',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000007',
+                'employee_id' => '69007',
+                'username' => 'badri',
+                'prefix' => 'นาย',
+                'first_name' => 'บัดรี',
+                'last_name' => 'สาและ',
+                'name' => 'นายบัดรี สาและ',
+                'email' => 'badri@yru.ac.th',
+                'password' => Hash::make('69007'),
+                'user_role' => 'Driver',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000008',
+                'employee_id' => '69008',
+                'username' => 'torik',
+                'prefix' => 'นาย',
+                'first_name' => 'ตอริก',
+                'last_name' => 'ลือแมะ',
+                'name' => 'นายตอริก ลือแมะ',
+                'email' => 'torik@yru.ac.th',
+                'password' => Hash::make('69008'),
+                'user_role' => 'Driver',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+            [
+                'user_id' => 'USR-000009',
+                'employee_id' => '69009',
+                'username' => 'somwang',
+                'prefix' => 'นาย',
+                'first_name' => 'สมหวัง',
+                'last_name' => 'ใจดี',
+                'name' => 'นายสมหวัง ใจดี',
+                'email' => 'somwang@yru.ac.th',
+                'password' => Hash::make('69009'),
+                'user_role' => 'Driver',
+                'usage_rights' => 'Active',
+                'status' => 'ใช้งาน',
+                'email_verified_at' => now(),
+            ],
+        ];
+
+        foreach ($users as $userData) {
+            User::updateOrCreate(
+                ['user_id' => $userData['user_id']],
+                $userData
+            );
+        }
+    }
+}
