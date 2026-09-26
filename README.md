@@ -136,6 +136,9 @@ GPS_STALE_SECONDS=120   # ถ้าไม่ได้รับพิกัดเ
 php artisan migrate
 ```
 
+> `GPS_DEVICE_KEY` เป็น **รหัสลับร่วมของทั้งฝูงรถ ไม่ใช่รหัสประจำอุปกรณ์** ทุกบอร์ดใช้ค่าเดียวกันหมด สิ่งที่แยกแต่ละบอร์ดออกจากกันคือ `DEVICE_ID` ต่างหาก
+> ใส่หลายค่าใน `.env` ไม่ได้ (ระบบอ่านค่าเดียว) และอย่าตั้งค่าให้พ้องกับ `DEVICE_ID` ของบอร์ดใดบอร์ดหนึ่ง เพราะจะสับสนตอนมีหลายตัว
+
 **2. แฟลชโค้ดลง ESP32** เปิด [firmware/esp32_gps_tracker/esp32_gps_tracker.ino](firmware/esp32_gps_tracker/esp32_gps_tracker.ino) ด้วย Arduino IDE
 - ติดตั้งไลบรารี **TinyGPSPlus** และ **ArduinoJson** (v7) จาก Library Manager
 - แก้ `WIFI_SSID`, `WIFI_PASSWORD`, `SERVER_URL` และ `GPS_DEVICE_KEY` ที่ส่วนบนของไฟล์
@@ -143,6 +146,13 @@ php artisan migrate
 - เปิด Serial Monitor (115200) จะเห็น `DEVICE_ID` เช่น `ESP32-A1B2C3` และ IP ของ ESP32
 
 **3. ผูก GPS กับรถ** ในหน้าแอดมิน ไปที่เมนู **อุปกรณ์ GPS** อุปกรณ์จะขึ้นในตารางเองหลังส่งพิกัดครั้งแรก แล้วเลือกรถในช่อง "ติดตั้งบนรถ" (1 GPS ต่อ 1 คัน รถที่มี GPS แล้วจะเลือกซ้ำไม่ได้)
+
+**4. เพิ่ม ESP32 ตัวที่ 2, 3, 4 …** ไม่ต้องแก้โค้ดหรือ `.env` เลย
+
+- แฟลช **ไฟล์เดิม ค่าเดิมทั้งหมด** ลงบอร์ดใหม่ได้เลย ขอแค่ปล่อย `DEVICE_ID = ""` ไว้ ระบบจะสร้างรหัสจาก MAC ของบอร์ดนั้นให้เอง จึงไม่มีทางซ้ำกัน
+- เปิด Serial Monitor จด `DEVICE_ID` ของบอร์ดใหม่ แล้วทำตามข้อ 3 อีกครั้ง
+- ตั้ง "ชื่อเรียก" ในตารางให้แต่ละตัวด้วย จะได้แยกออกว่าตัวไหนติดรถคันไหน
+- รถที่เลือกได้มาจากรายการรถในระบบ (`EV-01` ถึง `EV-10`) ถ้าจะใช้เกินนั้นต้องไปเพิ่มรถในหน้าแอดมินก่อน
 
 **API ที่เกี่ยวข้อง**
 
@@ -155,6 +165,33 @@ php artisan migrate
 | DELETE | `/api/gps/devices/{id}` | ลบอุปกรณ์ (แอดมินเท่านั้น) |
 
 ตัว ESP32 เองก็มี API `GET http://<IP ของ ESP32>/gps` คืนค่า JSON ตำแหน่งล่าสุด ไว้ทดสอบในวง WiFi เดียวกัน เว็บจริงไม่ได้ดึงจากตรงนี้ เพราะ ESP32 บนรถไม่มี IP สาธารณะ และเว็บ https เรียก http ในวงแลนไม่ได้
+
+### แก้ปัญหา ESP32 ส่งพิกัดไม่สำเร็จ
+
+ดูบรรทัด `[Upload] ...` ใน Serial Monitor เป็นหลัก มันบอกสาเหตุตรง ๆ
+
+| สิ่งที่เห็นใน Serial | สาเหตุ | วิธีแก้ |
+|---|---|---|
+| `ส่งไม่สำเร็จ: connection refused` / `read Timeout` | เครื่องปลายทางไม่รับ connection | ดูหัวข้อไฟร์วอลล์ด้านล่าง |
+| `401 Invalid device key` | `GPS_DEVICE_KEY` ในสเก็ตช์ไม่ตรงกับใน `.env` | แก้ให้ตรงแล้วแฟลชใหม่ |
+| `503 GPS_DEVICE_KEY is not configured` | ยังไม่ได้ตั้งค่าใน `.env` ฝั่งเว็บ | ตั้งค่าแล้วรีสตาร์ต `php artisan serve` |
+| `ส่งสำเร็จ (ยังไม่ได้ผูกกับรถในหน้าแอดมิน)` | ส่งถึงแล้ว แต่ยังไม่ได้เลือกรถ | ทำตามข้อ 3 |
+| ไม่มีบรรทัด `[Upload]` เลย มีแต่ `[GPS] ยังไม่มีสัญญาณ` | ยังจับดาวเทียมไม่ได้ ไม่ใช่ปัญหาเครือข่าย | เอา GPS ออกไปที่โล่ง รอ 1-2 นาที |
+
+**บรรทัด `[API] http://<IP>/gps` ไม่ใช่ปลายทางที่ส่ง** — นั่นคือ IP ของตัว ESP32 เอง (เว็บเซิร์ฟเวอร์ในตัวไว้ดีบัก) ปลายทางจริงคือค่า `SERVER_URL`
+
+**ไฟร์วอลล์บน Windows** เป็นสาเหตุที่เจอบ่อยที่สุดเวลาทดสอบกับเครื่องตัวเอง `php artisan serve` เฉย ๆ จะ bind แค่ `127.0.0.1` ต้องใช้ `--host=0.0.0.0` และถ้าเคยกด Cancel ที่หน้าต่างแจ้งเตือนของ Windows Defender ตอนรันครั้งแรก มันจะสร้าง rule **Block** ค้างไว้ ทำให้เปิดจาก `localhost` ได้ปกติแต่เครื่องอื่นในวงแลนต่อไม่ติด (rule ชื่อ `CLI` สำหรับ `php.exe` และ `Apache HTTP Server` สำหรับ `httpd.exe`)
+
+```powershell
+# ตรวจว่ามี rule Block ค้างอยู่ไหม
+netsh advfirewall firewall show rule name="CLI" verbose
+
+# แก้ (ต้องเปิด PowerShell แบบ Run as administrator) หรือใช้ wf.msc แก้ผ่าน GUI ก็ได้
+netsh advfirewall firewall delete rule name="CLI" dir=in program="C:\xampp\php\php.exe"
+netsh advfirewall firewall add rule name="Laravel artisan serve 8000" dir=in action=allow protocol=TCP localport=8000 profile=any
+```
+
+ทดสอบว่าผ่านหรือยัง: เอามือถือที่ต่อ WiFi วงเดียวกันเปิด `http://<IP คอมพิวเตอร์>:8000` ถ้าเห็นหน้าเว็บแปลว่าใช้ได้แล้ว
 
 ## การ Deploy
 
