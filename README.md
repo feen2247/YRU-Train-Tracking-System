@@ -1,59 +1,132 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# YRU Train Tracking System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+ระบบติดตามและบริหารจัดการรถไฟฟ้า (EV) ภายในมหาวิทยาลัยราชภัฏยะลา พัฒนาด้วย Laravel 12 (PHP 8.2+) และ Blade
 
-## About Laravel
+## ความต้องการของระบบ
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2 ขึ้นไป (เปิด extension `pdo_mysql` หรือ `pdo_sqlite`, `mbstring`, `openssl`, `fileinfo`)
+- Composer (ใช้ `php composer.phar` ที่อยู่ในโปรเจกต์แทนได้)
+- Node.js 18 ขึ้นไป และ npm
+- MySQL/MariaDB (แนะนำ) หรือ SQLite
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+บน Windows ติดตั้งทุกอย่างได้ง่ายที่สุดผ่าน [Laragon](https://laragon.org) หรือ XAMPP
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## วิธีรันแอปบนเครื่อง (Local)
 
-## Learning Laravel
+### 1. ติดตั้ง dependencies
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+composer install        # หรือ: php composer.phar install
+npm install
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. ตั้งค่าไฟล์ `.env`
 
-## Laravel Sponsors
+```bash
+cp .env.example .env          # Windows (cmd): copy .env.example .env
+php artisan key:generate
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+จากนั้นแก้ค่าฐานข้อมูลใน `.env`
 
-### Premium Partners
+**แบบ MySQL (แนะนำ ตรงกับเซิร์ฟเวอร์จริง)** สร้างฐานข้อมูลเปล่าก่อน เช่น `yru_train` แล้วตั้งค่า:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=yru_train
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-## Contributing
+**แบบ SQLite (ไม่ต้องติดตั้ง MySQL)**
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```env
+DB_CONNECTION=sqlite
+# ลบหรือคอมเมนต์บรรทัด DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD ออก
+```
 
-## Code of Conduct
+แล้วสร้างไฟล์ว่าง `database/database.sqlite`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. สร้างตารางและข้อมูลตัวอย่าง
 
-## Security Vulnerabilities
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+ต้องรันขั้นตอนนี้ก่อนเปิดเว็บ เพราะระบบเก็บ session และ cache ไว้ในฐานข้อมูล (`SESSION_DRIVER=database`, `CACHE_STORE=database`)
 
-## License
+### 4. รันเซิร์ฟเวอร์
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer dev
+```
+
+คำสั่งนี้รัน `php artisan serve`, queue worker, log viewer (pail) และ Vite พร้อมกัน แล้วเปิด http://localhost:8000
+
+หรือรันเฉพาะเว็บเซิร์ฟเวอร์ก็ได้:
+
+```bash
+php artisan serve
+```
+
+> หน้าเว็บส่วนใหญ่โหลด Tailwind, Leaflet, Chart.js และ SweetAlert2 จาก CDN จึงต้องต่ออินเทอร์เน็ตขณะใช้งาน
+
+### ติดตั้งแบบคำสั่งเดียว
+
+หลังแก้ค่า DB ใน `.env` แล้ว (หรือใช้ค่าเริ่มต้น) รันได้เลย:
+
+```bash
+composer setup   # install, สร้าง .env, key:generate, migrate, npm install, npm run build
+php artisan db:seed
+composer dev
+```
+
+## บัญชีทดสอบ (จาก `UserSeeder`)
+
+เข้าสู่ระบบได้ด้วย username, อีเมล หรือรหัสพนักงาน รหัสผ่านเริ่มต้นคือ **รหัสพนักงาน**
+
+| บทบาท | Username | รหัสผ่าน | หน้าที่เข้าถึง |
+|---|---|---|---|
+| ผู้ดูแลระบบ (Administrator) | `muhammad` | `69001` | `/admin-view` |
+| ผู้บริหาร (Executive) | `somchai` | `69002` | `/executive-view` |
+| พนักงานขับรถ (Driver) | `asmee` | `69003` | `/tracking` |
+| ช่าง (Mechanic) | `prasan` | `69013` | `/maintenance-system` |
+| หัวหน้างานยานพาหนะ | `suthin` | `69014` | `/vehicle-head` |
+| นักศึกษา (Student) | `406665014` | `406665014` | `/home` |
+
+ดูรายชื่อทั้งหมดได้ที่ [database/seeders/UserSeeder.php](database/seeders/UserSeeder.php)
+
+## หน้าหลักของระบบ
+
+| URL | ผู้ใช้งาน |
+|---|---|
+| `/` | หน้าเข้าสู่ระบบ / สมัครสมาชิก |
+| `/home` | ผู้โดยสาร / นักศึกษา ดูแผนที่และตำแหน่งรถ เรียกรถ |
+| `/tracking` | พนักงานขับรถ |
+| `/admin-view` | ผู้ดูแลระบบ จัดการรถ เส้นทาง ผู้ใช้ รายงาน |
+| `/executive-view` | ผู้บริหาร ดูสถิติและอนุมัติงานซ่อม |
+| `/maintenance-system` | ช่างซ่อมบำรุง |
+| `/vehicle-head` | หัวหน้างานยานพาหนะ |
+
+## คำสั่งที่ใช้บ่อย
+
+```bash
+composer test                                   # รันเทสต์ทั้งหมด
+php artisan test --filter=ExampleTest           # รันเทสต์เดียว
+vendor/bin/pint                                 # จัดรูปแบบโค้ด
+npm run build                                   # build assets สำหรับ production
+php artisan migrate:fresh --seed                # ล้างฐานข้อมูลแล้วสร้างใหม่พร้อมข้อมูลตัวอย่าง
+php artisan optimize:clear                      # ล้าง cache ของ config/route/view
+```
+
+ถ้าข้อมูลรถหรือสถานะคนขับค้าง ให้เปิด `/clear-all-caches` เพื่อรีเซ็ต cache ที่ใช้ซิงก์ข้อมูลระหว่างผู้ใช้
+
+## การ Deploy
+
+เซิร์ฟเวอร์จริงเป็น shared hosting อัปโหลดไฟล์ผ่าน FTP (สคริปต์อยู่ใน `_scripts/deployment/`) ไฟล์ `index.php` และ `.htaccess` ที่ root ของโปรเจกต์จะส่งทุก request ต่อไปยังโฟลเดอร์ `public/` ทำให้วางทั้งโปรเจกต์ไว้ใน web root ได้โดยตรง
+
+## เอกสารประกอบ
+
+- พจนานุกรมข้อมูล: `Data_Dictionary_YRU_Train_Tracking_System.docx`
