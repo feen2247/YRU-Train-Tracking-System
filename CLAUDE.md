@@ -12,7 +12,7 @@ YRU Train Tracking System: an electric-tram (EV) tracking and management web app
 2. `cp .env.example .env`, then `php artisan key:generate`.
 3. Set the DB in `.env`. MySQL matches production. For SQLite, set `DB_CONNECTION=sqlite`, remove the other `DB_*` lines and create an empty `database/database.sqlite`. `/api/debug-auth` runs `DESCRIBE`, so it works only on MySQL.
 4. `php artisan migrate --seed`. This is required before the first request, because sessions and cache use the `database` driver. The shared-state sync (below) lives in the `cache` table.
-5. `composer dev` (or just `php artisan serve`), then open http://localhost:8000.
+5. `php artisan serve`, then open http://localhost:8000. `composer dev` does not work on Windows: `php artisan pail` needs `ext-pcntl`, and `--kill-others` then stops every process. The main pages don't use `@vite` (only `layouts/app.blade.php` does), so Vite isn't needed to run the app.
 
 Seeded users (`database/seeders/UserSeeder.php`) log in with username, email or employee ID. The password is the employee ID. Examples:
 - `muhammad`/`69001`: Administrator

@@ -205,6 +205,18 @@
                 print-color-adjust: exact !important;
             }
         }
+
+        /* SweetAlert2 ใส่ class swal2-height-auto ให้ html/body (height: auto) ตอนเปิด popup
+           ทำให้ body ที่เป็น h-screen หดตามเนื้อหา และ sidebar สั้นลง จึงบังคับความสูงไว้เท่าเดิม */
+        @media screen {
+            html.swal2-height-auto,
+            body.swal2-height-auto {
+                height: 100% !important;
+            }
+            body.swal2-height-auto {
+                height: 100vh !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 flex flex-col h-screen overflow-hidden">

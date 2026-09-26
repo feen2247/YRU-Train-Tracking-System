@@ -25,12 +25,12 @@
 #include <TinyGPS++.h>
 
 // ======================= ตั้งค่า =======================
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID     = "feen";
+const char* WIFI_PASSWORD = "123456789";
 
 // URL ของเว็บ (ไม่ต้องมี / ปิดท้าย) เช่น "https://406665014.site.yru.ac.th"
 // ทดสอบบนเครื่องตัวเอง: "http://<IP คอมพิวเตอร์>:8000" แล้วรัน php artisan serve --host=0.0.0.0
-const char* SERVER_URL = "http://192.168.1.100:8000";
+const char* SERVER_URL = "http://192.168.0.104:8000";
 
 // ต้องตรงกับ GPS_DEVICE_KEY ในไฟล์ .env ของเว็บ
 const char* GPS_DEVICE_KEY = "CHANGE_ME";

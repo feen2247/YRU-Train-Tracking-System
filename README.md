@@ -60,16 +60,14 @@ php artisan migrate --seed
 ### 4. รันเซิร์ฟเวอร์
 
 ```bash
-composer dev
-```
-
-คำสั่งนี้รัน `php artisan serve`, queue worker, log viewer (pail) และ Vite พร้อมกัน แล้วเปิด http://localhost:8000
-
-หรือรันเฉพาะเว็บเซิร์ฟเวอร์ก็ได้:
-
-```bash
 php artisan serve
 ```
+
+แล้วเปิด http://localhost:8000 ใช้คำสั่งนี้คำสั่งเดียวก็พอ เพราะหน้าเว็บหลักไม่ได้ใช้ Vite
+
+> **macOS/Linux** ใช้ `composer dev` ได้ (รัน serve, queue, log viewer และ Vite พร้อมกัน)
+> **Windows** ใช้ `composer dev` ไม่ได้ เพราะ log viewer (pail) ต้องใช้ extension `pcntl` ที่ไม่มีบน Windows ให้ใช้ `php artisan serve` แทน
+> ถ้าไม่ได้ติดตั้ง Composer ไว้ทั้งเครื่อง ให้พิมพ์ `php composer.phar` แทน `composer` ทุกครั้ง
 
 > หน้าเว็บส่วนใหญ่โหลด Tailwind, Leaflet, Chart.js และ SweetAlert2 จาก CDN จึงต้องต่ออินเทอร์เน็ตขณะใช้งาน
 
@@ -78,9 +76,9 @@ php artisan serve
 หลังแก้ค่า DB ใน `.env` แล้ว (หรือใช้ค่าเริ่มต้น) รันได้เลย:
 
 ```bash
-composer setup   # install, สร้าง .env, key:generate, migrate, npm install, npm run build
+php composer.phar setup   # install, สร้าง .env, key:generate, migrate, npm install, npm run build
 php artisan db:seed
-composer dev
+php artisan serve
 ```
 
 ## บัญชีทดสอบ (จาก `UserSeeder`)
