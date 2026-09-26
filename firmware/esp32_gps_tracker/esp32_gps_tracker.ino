@@ -69,13 +69,58 @@ bool hasFreshFix() {
   return gps.location.isValid() && gps.location.age() <= MAX_FIX_AGE_MS;
 }
 
+const char* wifiStatusText(wl_status_t s) {
+  switch (s) {
+    case WL_NO_SSID_AVAIL:  return "หาชื่อ WiFi ไม่เจอ";
+    case WL_CONNECT_FAILED: return "เชื่อมต่อไม่สำเร็จ (รหัสผ่านผิด?)";
+    case WL_CONNECTION_LOST: return "สัญญาณหลุด";
+    case WL_DISCONNECTED:   return "ยังไม่เชื่อมต่อ";
+    case WL_IDLE_STATUS:    return "กำลังเชื่อมต่อ";
+    default:                return "ไม่ทราบสถานะ";
+  }
+}
+
+// สแกนหา WiFi ชื่อ WIFI_SSID เพื่อบอกสาเหตุที่ต่อไม่ได้
+void diagnoseWifi() {
+  int n = WiFi.scanNetworks();
+  bool found = false;
+  for (int i = 0; i < n; i++) {
+    if (WiFi.SSID(i) == WIFI_SSID) {
+      found = true;
+      Serial.printf("[WiFi] เจอ \"%s\" ช่อง %d สัญญาณ %d dBm\n", WIFI_SSID, WiFi.channel(i), WiFi.RSSI(i));
+    }
+  }
+  if (!found) {
+    Serial.printf("[WiFi] หา \"%s\" ไม่เจอ (สแกนเจอ %d เครือข่าย) -> ESP32 ใช้ได้เฉพาะ 2.4 GHz, เช็กชื่อตัวพิมพ์เล็ก/ใหญ่\n", WIFI_SSID, n);
+    for (int i = 0; i < n && i < 8; i++) Serial.printf("         - %s\n", WiFi.SSID(i).c_str());
+  } else {
+    Serial.println("[WiFi] เจอเครือข่ายแต่ต่อไม่ได้ -> เช็กรหัสผ่าน หรือเปลี่ยน hotspot เป็น WPA2 (ไม่ใช่ WPA3)");
+  }
+  WiFi.scanDelete();
+}
+
 void connectWifi() {
   if (WiFi.status() == WL_CONNECTED) return;
-  if (lastWifiAttemptMs != 0 && millis() - lastWifiAttemptMs < 15000) return;
-  lastWifiAttemptMs = millis();
-  Serial.printf("[WiFi] กำลังเชื่อมต่อ %s ...\n", WIFI_SSID);
-  WiFi.mode(WIFI_STA);
+
+  // ครั้งแรก: สั่งเชื่อมต่อแล้วปล่อยให้ ESP32 ต่อเองเบื้องหลัง
+  if (lastWifiAttemptMs == 0) {
+    lastWifiAttemptMs = millis();
+    Serial.printf("[WiFi] กำลังเชื่อมต่อ %s ...\n", WIFI_SSID);
+    WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    return;
+  }
+
+  // ต่อไม่ได้เกิน 20 วินาที: บอกสาเหตุ แล้วตัดการเชื่อมต่อเดิมก่อนเริ่มใหม่
+  // (ห้ามเรียก WiFi.begin() ซ้ำระหว่างที่ยังเชื่อมต่ออยู่ จะขึ้น "sta is connecting, cannot set config")
+  if (millis() - lastWifiAttemptMs < 20000) return;
+  Serial.printf("[WiFi] ต่อ %s ไม่ได้: %s\n", WIFI_SSID, wifiStatusText(WiFi.status()));
+  WiFi.disconnect();
+  diagnoseWifi();
+  Serial.printf("[WiFi] ลองเชื่อมต่อ %s ใหม่ ...\n", WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  lastWifiAttemptMs = millis();
 }
 
 // ---------- API บนตัว ESP32 ----------
