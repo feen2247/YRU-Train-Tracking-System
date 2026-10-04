@@ -31,10 +31,10 @@
         @endphp
         <button type="button" onclick="toggleProfileDropdown()" class="flex items-center gap-2 focus:outline-none hover:bg-white/10 transition-all rounded-full px-3 py-1.5 border border-white/10">
             <div class="hidden sm:flex flex-col items-end mr-1">
-                <span class="text-white text-xs font-bold drop-shadow-sm">{{ $authUsername }}</span>
+                <span id="navProfileName" class="text-white text-xs font-bold drop-shadow-sm">{{ $authUsername }}</span>
             </div>
             <!-- Avatar Circle -->
-            <div class="w-8 h-8 rounded-full bg-white text-pink-500 flex items-center justify-center text-sm font-black shadow-md">
+            <div id="navProfileAvatar" class="w-8 h-8 rounded-full bg-white text-pink-500 flex items-center justify-center text-sm font-black shadow-md">
                 {{ $authInitials }}
             </div>
             <i class="fas fa-chevron-down text-white text-[10px] ml-1 transition-transform duration-200" id="profileDropdownIcon"></i>
@@ -48,7 +48,7 @@
                 </button>
             </div>
             <div class="py-1">
-                <a href="{{ url('/') }}" class="group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium">
+                <a href="{{ url('/logout') }}" onclick="handleUserLogout(event)" class="group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium">
                     <i class="fas fa-sign-out-alt w-5 text-center mr-3"></i> ออกจากระบบ
                 </a>
             </div>

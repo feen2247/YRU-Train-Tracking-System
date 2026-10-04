@@ -27,15 +27,16 @@
             <button type="button" id="menu-btn-pending" onclick="switchExecutiveTab('pending')" class="menu-btn flex items-center space-x-3 hover:bg-white/10 w-full px-4 py-3 rounded-xl text-left transition font-medium text-sm cursor-pointer">
                 <i class="fas fa-clipboard-check w-5 text-center"></i>
                 <span>รายการแจ้งซ่อมที่รอการอนุมัติ</span>
-                <span id="sidebar-pending-badge" class="ml-auto bg-purple-900 text-purple-100 border border-purple-400/30 text-[11px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse">3</span>
+                <span id="sidebar-pending-badge" class="ml-auto bg-purple-900 text-purple-100 border border-purple-400/30 text-[11px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse">0</span>
             </button>
 
-            <!-- 3. Driver Ratings (คะแนนประเมินพนักงานขับรถ) -->
+            <!-- 3. Driver Evaluation Ratings (คะแนนประเมินคนขับรถ) -->
             <button type="button" id="menu-btn-ratings" onclick="switchExecutiveTab('ratings')" class="menu-btn flex items-center space-x-3 hover:bg-white/10 w-full px-4 py-3 rounded-xl text-left transition font-medium text-sm cursor-pointer">
                 <i class="fas fa-star w-5 text-center text-amber-300"></i>
-                <span>คะแนนประเมินคนขับ</span>
-                <span id="sidebar-ratings-badge" class="ml-auto bg-amber-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full shadow-2xs">4.8★</span>
+                <span>คะแนนประเมินคนขับรถ</span>
+                <span id="sidebar-ratings-badge" class="ml-auto bg-amber-400 text-amber-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow-sm">ประเมิน</span>
             </button>
+
         </nav>
     </div>
 

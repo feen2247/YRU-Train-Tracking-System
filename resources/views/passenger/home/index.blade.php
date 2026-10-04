@@ -8,10 +8,25 @@
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.png') }}?v={{ time() }}">
     <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}?v={{ time() }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="/api/storage/init?v={{ time() }}"></script>
     <script>
-        // ระบบความปลอดภัย: ป้องกันการเข้าถึงหน้าผ่านการคัดลอกลิงก์ (Client-side Auth Guard)
+        // ระบบความปลอดภัย: Client-side Auth Guard & Sync
         (function() {
             try {
+                @if(Auth::check())
+                    var authObj = {
+                        user_id: "{{ Auth::user()->employee_id ?: Auth::user()->user_id }}",
+                        emp_id: "{{ Auth::user()->employee_id }}",
+                        name: "{{ addslashes(Auth::user()->name) }}",
+                        email: "{{ Auth::user()->email }}",
+                        username: "{{ Auth::user()->username }}",
+                        role: "{{ Auth::user()->user_role }}"
+                    };
+                    localStorage.setItem('yru_user_login', JSON.stringify(authObj));
+                    sessionStorage.setItem('yru_user_login', JSON.stringify(authObj));
+                    return;
+                @endif
+
                 var rawUser = localStorage.getItem('yru_user_login') || sessionStorage.getItem('yru_user_login');
                 if (!rawUser) {
                     window.location.replace("{{ url('/') }}");
@@ -23,11 +38,12 @@
                     return;
                 }
             } catch (e) {
-                window.location.replace("{{ url('/') }}");
+                @if(!Auth::check())
+                    window.location.replace("{{ url('/') }}");
+                @endif
             }
         })();
     </script>
-    <script src="/api/storage/init?v={{ time() }}"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -146,9 +162,15 @@
             border-color: rgba(203, 213, 225, 0.8);
         }
         .vehicle-pill .v-num {
-            width: 22px; height: 22px;
+            width: auto;
+            min-width: 26px;
+            height: 22px;
+            padding: 0 5px;
             border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
             color: white;
             font-size: 10px;
             font-weight: 900;
@@ -249,12 +271,15 @@
             transform: scale(1.05);
         }
         .eta-chip .eta-vnum {
-            width: 16px;
+            width: auto;
+            min-width: 24px;
             height: 16px;
-            border-radius: 4px;
-            display: flex;
+            padding: 0 4.5px;
+            border-radius: 9999px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 2.5px;
             font-size: 8.5px;
             font-weight: 900;
             color: white;
@@ -435,7 +460,7 @@
                     </button>
                 </div>
                 <div class="py-1">
-                    <a href="{{ url('/') }}" onclick="handleUserLogout()" class="group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium">
+                    <a href="{{ url('/logout') }}" onclick="handleUserLogout(event)" class="group flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium">
                         <i class="fas fa-sign-out-alt w-5 text-center mr-3"></i> ออกจากระบบ
                     </a>
                 </div>
@@ -528,20 +553,19 @@
             <div id="surveyFormSection" class="p-5 space-y-5">
                 
                 <!-- ส่วนแสดงผลและเลือกข้อมูลคนขับเพื่อยืนยันตัวตน -->
-                <div class="bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-100 rounded-2xl p-4 flex flex-col gap-3">
+                <div class="bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-100 rounded-2xl p-4 flex flex-col gap-3 shadow-xs">
                     <div class="flex items-center gap-4">
-                        <img id="surveyDriverAvatar" src="https://ui-avatars.com/api/?name=Driver&background=ec4899&color=fff&size=128" class="w-16 h-16 rounded-full border-2 border-white object-cover shadow-md" alt="Driver Avatar">
+                        <img id="surveyDriverAvatar" src="https://ui-avatars.com/api/?name=%E0%B8%AD%E0%B8%B1%E0%B8%AA%E0%B8%A1%E0%B8%B5&background=ec4899&color=fff&size=128" class="w-16 h-16 rounded-full border-2 border-white object-cover shadow-md" alt="Driver Avatar">
                         <div class="flex-1 text-left">
-                            <span class="text-[10px] bg-pink-100 text-pink-600 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">พนักงานขับรถ</span>
-                            <h4 id="surveyDriverName" class="text-base font-bold text-slate-800 mt-1">กรุณาเลือกคนขับ</h4>
-                            <p id="surveyDriverRole" class="text-xs text-slate-500 font-light mt-0.5">ไม่ได้เลือกพนักงานขับรถ</p>
+                            <span class="text-[10px] bg-pink-100 text-pink-700 font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">พนักงานขับรถ</span>
+                            <h4 id="surveyDriverName" class="text-base font-black text-slate-800 mt-1">นายอัสมี มูเล็ง</h4>
+                            <p id="surveyDriverRole" class="text-xs text-pink-600 font-bold mt-0.5"><i class="fas fa-shuttle-van mr-1"></i>พนักงานขับรถ EV-01 (กค 1234 ยะลา)</p>
                         </div>
                     </div>
                     
                     <div class="border-t border-pink-100 pt-2">
-                        <label for="surveyDriverSelect" class="block text-[11px] font-semibold text-slate-500 mb-1">กรุณาเลือกหรือยืนยันพนักงานขับรถ:</label>
-                        <select id="surveyDriverSelect" onchange="updateSurveyDriverCard(this.value)" class="w-full px-3 py-2 bg-white border border-pink-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-pink-400 text-slate-700">
-                            <option value="">-- กรุณาเลือกคนขับ --</option>
+                        <label for="surveyDriverSelect" class="block text-[11px] font-bold text-slate-600 mb-1">เลือกหรือเปลี่ยนพนักงานขับรถ:</label>
+                        <select id="surveyDriverSelect" onchange="updateSurveyDriverCard(this.value)" class="w-full px-3 py-2 bg-white border border-pink-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-pink-400 text-slate-700 shadow-2xs">
                         </select>
                     </div>
                 </div>
@@ -648,12 +672,12 @@
             <!-- Header section -->
             <div class="flex-shrink-0 z-10">
                 <!-- Station list header -->
-                <div class="px-4 md:px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <div class="px-4 md:px-5 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
                     <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                        <i class="fas fa-map-pin text-pink-500 text-xs"></i>
-                        จุดจอดทั้งหมด
+                        <span class="text-sm leading-none">📍</span>
+                        <span>จุดจอด</span>
                     </span>
-                    <span class="text-[10px] text-slate-400">เวลารอรถคาดการณ์</span>
+                    <span class="text-xs text-slate-500 font-medium flex items-center gap-1.5"><span class="text-xs leading-none">🕒</span><span>เวลาคาดการณ์</span></span>
                 </div>
             </div>
 
@@ -696,7 +720,7 @@
                             <p class="text-[9px] md:text-[10px] text-slate-400 font-semibold truncate">สถานะการให้บริการ</p>
                             <p class="text-xs md:text-sm font-bold text-slate-700 flex items-center gap-1.5 truncate">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0 inline-block"></span>
-                                <span class="truncate">พร้อมให้บริการ</span>
+                                <span class="truncate">ยังไม่มีรายการเรียกรถในขณะนี้ <span class="text-xs text-slate-500 font-normal hidden md:inline">(กดปุ่ม "เรียกรถที่นี่" เพื่อเริ่มเรียกรถไฟฟ้า)</span></span>
                             </p>
                         </div>
                     </div>
@@ -905,7 +929,7 @@
             driver_id: "USR008", 
             battery: 89, 
             image: "",
-            coords: "6.548822, 101.288523",
+            coords: "6.547687, 101.288335",
             active_issue: "",
             updated_by: "admin@yru.ac.th",
             updated_at: "12 มี.ค. 2568",
@@ -927,7 +951,7 @@
             driver_id: "USR009", 
             battery: 82, 
             image: "",
-            coords: "6.549225, 101.289286",
+            coords: "6.548822, 101.288523",
             active_issue: "",
             updated_by: "admin@yru.ac.th",
             updated_at: "12 มี.ค. 2568",
@@ -949,7 +973,7 @@
             driver_id: "USR010", 
             battery: 90, 
             image: "",
-            coords: "6.549929, 101.291254",
+            coords: "6.549225, 101.289286",
             active_issue: "",
             updated_by: "admin@yru.ac.th",
             updated_at: "12 มี.ค. 2568",
@@ -971,7 +995,7 @@
             driver_id: "USR011", 
             battery: 87, 
             image: "",
-            coords: "6.547835, 101.289502",
+            coords: "6.550323, 101.290024",
             active_issue: "",
             updated_by: "admin@yru.ac.th",
             updated_at: "12 มี.ค. 2568",
@@ -993,7 +1017,7 @@
             driver_id: "USR012", 
             battery: 91, 
             image: "",
-            coords: "6.547311, 101.288880",
+            coords: "6.549929, 101.291254",
             active_issue: "",
             updated_by: "admin@yru.ac.th",
             updated_at: "12 มี.ค. 2568",
@@ -1008,6 +1032,8 @@
         if (key.startsWith("yru_trams")) {
             const v18 = localStorage.getItem("yru_trams_v18");
             if (v18) return JSON.parse(v18);
+            const v20 = localStorage.getItem("yru_trams_v20");
+            if (v20) return JSON.parse(v20);
         }
         if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(defaultData));
         return JSON.parse(localStorage.getItem(key));
@@ -1026,16 +1052,16 @@
         });
     }
     const defaultTramCoords = {
-        "EV-01": "6.549929, 101.291254", // จุดจอด 1 ประตูหลังมอ.
-        "EV-02": "6.549100, 101.290467", // จุดจอด 2 ตึกศิลปะ
-        "EV-03": "6.547835, 101.289502", // จุดจอด 3 ศูนย์วิทยาศาสตร์
-        "EV-04": "6.547224, 101.289471", // จุดจอด 4 คณะวิทยาศาสตร์
-        "EV-05": "6.547311, 101.288880", // จุดจอด 5 คณะสังคมศาสตร์
-        "EV-06": "6.548822, 101.288523", // จุดจอด 6 อาคารเรียน 20
-        "EV-07": "6.549225, 101.289286", // จุดจอด 7 คณะวิทยาการจัดการ
-        "EV-08": "6.549929, 101.291254", // จุดจอด 1 ประตูหลังมอ.
-        "EV-09": "6.547835, 101.289502", // จุดจอด 3 ศูนย์วิทยาศาสตร์
-        "EV-10": "6.547311, 101.288880"  // จุดจอด 5 คณะสังคมศาสตร์
+        "EV-01": "6.549929, 101.291254", // จุดจอด 1 หน้าอาคารที่พักบุคลากร
+        "EV-02": "6.549100, 101.290467", // จุดจอด 2 หน้าตึกศิลปะ
+        "EV-03": "6.547835, 101.289502", // จุดจอด 3 หน้าอาคารศูนย์วิทยาศาสตร์
+        "EV-04": "6.547224, 101.289471", // จุดจอด 4 หน้าอาคารคณะวิทยาศาสตร์
+        "EV-05": "6.547311, 101.288880", // จุดจอด 5 หน้าอาคารคณะสังคมศาสตร์
+        "EV-06": "6.547687, 101.288335", // จุดจอด 6 หน้าร้าน Old School
+        "EV-07": "6.548822, 101.288523", // จุดจอด 7 หน้าอาคาร 20
+        "EV-08": "6.549225, 101.289286", // จุดจอด 8 หน้าอาคารคณะวิทยาการจัดการ
+        "EV-09": "6.550323, 101.290024", // จุดจอด 9 หน้าโรงอาหาร
+        "EV-10": "6.549929, 101.291254"  // จุดจอด 1 หน้าอาคารที่พักบุคลากร (คันเสริม)
     };
     const GARAGE_COORDS = "6.548900, 101.291700";
     trams.forEach(t => {
@@ -1051,10 +1077,10 @@
             }
             t.current_station_id = "GARAGE";
         } else {
-            // รถหลัก EV-01..EV-10: assign พิกัดประจำจุดจอดเพื่อให้วิ่งบนแผนที่
+            // รถหลัก EV-01..EV-10: assign พิกัดประจำจุดจอดตามลำดับ 1-9
             t.current_station_id = null;
-            if (!t.coords || t.coords === GARAGE_COORDS || t.coords === "6.548900, 101.291700") {
-                t.coords = defaultTramCoords[t.id] || GARAGE_COORDS;
+            if (defaultTramCoords[t.id]) {
+                t.coords = defaultTramCoords[t.id];
             }
         }
         if (t.id === "EV-01" && !t.driver_id) {
@@ -1095,6 +1121,13 @@
         }
 
         try {
+            // 1. Direct real-time seats count from driver
+            const rawSeats = localStorage.getItem('yru_seats_' + tramId);
+            if (rawSeats !== null && rawSeats !== '' && !isNaN(parseInt(rawSeats))) {
+                baseOccupied = parseInt(rawSeats);
+            }
+
+            // 2. Status object
             const rawStatus = localStorage.getItem('yru_car_status_' + tramId);
             if (rawStatus) {
                 const parsed = JSON.parse(rawStatus);
@@ -1104,12 +1137,12 @@
                 if (parsed && parsed.capacity !== undefined && !isNaN(parseInt(parsed.capacity))) {
                     maxCap = parseInt(parsed.capacity);
                 }
-            } else {
-                const rawSeats = localStorage.getItem('yru_seats_' + tramId);
-                if (rawSeats && !isNaN(parseInt(rawSeats))) {
-                    baseOccupied = parseInt(rawSeats);
-                } else if (typeof globalCarStatus !== 'undefined' && globalCarStatus[tramId]) {
-                    baseOccupied = parseInt(globalCarStatus[tramId].occupied) || 0;
+            }
+
+            // 3. Fallback to globalCarStatus if 0
+            if (baseOccupied === 0 && typeof globalCarStatus !== 'undefined' && globalCarStatus[tramId]) {
+                if (globalCarStatus[tramId].occupied !== undefined && !isNaN(parseInt(globalCarStatus[tramId].occupied))) {
+                    baseOccupied = parseInt(globalCarStatus[tramId].occupied);
                 }
             }
         } catch(e) {}
@@ -1135,182 +1168,133 @@
 
     let garageClusterMarker = null;
 
-    // ===== Default fallback Station data with ETA per vehicle =====
-    const defaultStationsList = [
-        { id: 1, name: "ประตูหลังมอ.", type: "P",
-          etas: [
-            { vehicleIdx: 0, time: "Now" },
-            { vehicleIdx: 7, time: "Now" },
-            { vehicleIdx: 6, time: "5 นาที" },
-            { vehicleIdx: 5, time: "10 นาที" },
-            { vehicleIdx: 4, time: "15 นาที" },
-            { vehicleIdx: 9, time: "15 นาที" },
-            { vehicleIdx: 3, time: "20 นาที" },
-            { vehicleIdx: 2, time: "25 นาที" },
-            { vehicleIdx: 8, time: "25 นาที" },
-            { vehicleIdx: 1, time: "30 นาที" }
-          ]
-        },
-        { id: 2, name: "ตึกศิลปะ", type: "P",
-          etas: [
-            { vehicleIdx: 1, time: "Now" },
-            { vehicleIdx: 0, time: "5 นาที" },
-            { vehicleIdx: 7, time: "5 นาที" },
-            { vehicleIdx: 6, time: "10 นาที" },
-            { vehicleIdx: 5, time: "15 นาที" },
-            { vehicleIdx: 4, time: "20 นาที" },
-            { vehicleIdx: 9, time: "20 นาที" },
-            { vehicleIdx: 3, time: "25 นาที" },
-            { vehicleIdx: 2, time: "30 นาที" },
-            { vehicleIdx: 8, time: "30 นาที" }
-          ]
-        },
-        { id: 3, name: "ศูนย์วิทยาศาสตร์", type: "P",
-          etas: [
-            { vehicleIdx: 2, time: "Now" },
-            { vehicleIdx: 8, time: "Now" },
-            { vehicleIdx: 1, time: "5 นาที" },
-            { vehicleIdx: 0, time: "10 นาที" },
-            { vehicleIdx: 7, time: "10 นาที" },
-            { vehicleIdx: 6, time: "15 นาที" },
-            { vehicleIdx: 5, time: "20 นาที" },
-            { vehicleIdx: 4, time: "25 นาที" },
-            { vehicleIdx: 9, time: "25 นาที" },
-            { vehicleIdx: 3, time: "30 นาที" }
-          ]
-        },
-        { id: 4, name: "คณะวิทยาศาสตร์", type: "P",
-          etas: [
-            { vehicleIdx: 3, time: "Now" },
-            { vehicleIdx: 2, time: "5 นาที" },
-            { vehicleIdx: 8, time: "5 นาที" },
-            { vehicleIdx: 1, time: "10 นาที" },
-            { vehicleIdx: 0, time: "15 นาที" },
-            { vehicleIdx: 7, time: "15 นาที" },
-            { vehicleIdx: 6, time: "20 นาที" },
-            { vehicleIdx: 5, time: "25 นาที" },
-            { vehicleIdx: 4, time: "30 นาที" },
-            { vehicleIdx: 9, time: "30 นาที" }
-          ]
-        },
-        { id: 5, name: "คณะสังคมศาสตร์", type: "P",
-          etas: [
-            { vehicleIdx: 4, time: "Now" },
-            { vehicleIdx: 9, time: "Now" },
-            { vehicleIdx: 3, time: "5 นาที" },
-            { vehicleIdx: 2, time: "10 นาที" },
-            { vehicleIdx: 8, time: "10 นาที" },
-            { vehicleIdx: 1, time: "15 นาที" },
-            { vehicleIdx: 0, time: "20 นาที" },
-            { vehicleIdx: 7, time: "20 นาที" },
-            { vehicleIdx: 6, time: "25 นาที" },
-            { vehicleIdx: 5, time: "30 นาที" }
-          ]
-        },
-        { id: 6, name: "อาคารเรียน20", type: "P",
-          etas: [
-            { vehicleIdx: 5, time: "Now" },
-            { vehicleIdx: 4, time: "5 นาที" },
-            { vehicleIdx: 9, time: "5 นาที" },
-            { vehicleIdx: 3, time: "10 นาที" },
-            { vehicleIdx: 2, time: "15 นาที" },
-            { vehicleIdx: 8, time: "15 นาที" },
-            { vehicleIdx: 1, time: "20 นาที" },
-            { vehicleIdx: 0, time: "25 นาที" },
-            { vehicleIdx: 7, time: "25 นาที" },
-            { vehicleIdx: 6, time: "30 นาที" }
-          ]
-        },
-        { id: 7, name: "คณะวิทยาการจัดการ", type: "P",
-          etas: [
-            { vehicleIdx: 6, time: "Now" },
-            { vehicleIdx: 5, time: "5 นาที" },
-            { vehicleIdx: 4, time: "10 นาที" },
-            { vehicleIdx: 9, time: "10 นาที" },
-            { vehicleIdx: 3, time: "15 นาที" },
-            { vehicleIdx: 2, time: "20 นาที" },
-            { vehicleIdx: 8, time: "20 นาที" },
-            { vehicleIdx: 1, time: "25 นาที" },
-            { vehicleIdx: 0, time: "30 นาที" },
-            { vehicleIdx: 7, time: "30 นาที" }
-          ]
+        // Helper: คำนวณเวลา ETA ของรถแต่ละคันตามลำดับจุดจอด 1-9 (เส้นทางวนรอบ 1->2->...->9->1)
+    function buildStationEtas(seq) {
+        const etas = [];
+        for (let vIdx = 0; vIdx < 10; vIdx++) {
+            // คันที่ 1-9 ประจำจุดจอด 1-9, คันที่ 10 ประจำจุดจอด 1
+            const carStopSeq = (vIdx === 9) ? 1 : (vIdx + 1);
+            let timeStr = "";
+            if (carStopSeq === seq) {
+                timeStr = "Now";
+            } else {
+                const diffStops = (seq - carStopSeq + 9) % 9;
+                timeStr = `${diffStops * 5} นาที`;
+            }
+            etas.push({ vehicleIdx: vIdx, time: timeStr });
         }
+        etas.sort((a, b) => parseEtaMinutes(a.time) - parseEtaMinutes(b.time));
+        return etas;
+    }
+
+    // ===== Default fallback Station data with ETA per vehicle (เรียงตามจุดจอด 1-9) =====
+    const defaultStationsList = [
+        { id: 1, name: "จุดจอด 1 หน้าอาคารที่พักบุคลากร", type: "P", etas: buildStationEtas(1) },
+        { id: 2, name: "จุดจอด 2 หน้าตึกศิลปะ", type: "P", etas: buildStationEtas(2) },
+        { id: 3, name: "จุดจอด 3 หน้าอาคารศูนย์วิทยาศาสตร์", type: "P", etas: buildStationEtas(3) },
+        { id: 4, name: "จุดจอด 4 หน้าอาคารคณะวิทยาศาสตร์", type: "P", etas: buildStationEtas(4) },
+        { id: 5, name: "จุดจอด 5 หน้าอาคารคณะสังคมศาสตร์", type: "P", etas: buildStationEtas(5) },
+        { id: 6, name: "จุดจอด 6 หน้าร้าน Old School", type: "P", etas: buildStationEtas(6) },
+        { id: 7, name: "จุดจอด 7 หน้าอาคาร20", type: "P", etas: buildStationEtas(7) },
+        { id: 8, name: "จุดจอด 8 หน้าอาคารคณะวิทยาการจัดการ", type: "P", etas: buildStationEtas(8) },
+        { id: 9, name: "จุดจอด 9 หน้าโรงอาหาร", type: "P", etas: buildStationEtas(9) }
     ];
 
     let stations = [];
 
     function loadDynamicStations() {
-        const localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
-        if (localStops.length === 0) {
+        let localStops = [];
+        try {
+            localStops = JSON.parse(localStorage.getItem("yru_stops_v3") || "[]");
+        } catch(e) { localStops = []; }
+
+        if (!localStops || localStops.length < 9) {
             stations = defaultStationsList;
+            try {
+                localStorage.setItem("yru_stops_v3", JSON.stringify(defaultStationData));
+            } catch(e) {}
             return;
         }
 
         stations = localStops.map((stop, index) => {
             const seq = stop.sequence || (index + 1);
-            const etas = [];
-            for (let vIdx = 0; vIdx < 10; vIdx++) {
-                let timeStr = "";
-                if (vIdx === (seq - 1) % 10) {
-                    timeStr = "Now";
-                } else {
-                    const diff = Math.abs(vIdx - ((seq - 1) % 10));
-                    timeStr = `${diff * 5} นาที`;
-                }
-                etas.push({ vehicleIdx: vIdx, time: timeStr });
-            }
             return {
                 id: seq,
                 name: stop.name,
                 type: "P",
-                etas: etas
+                etas: buildStationEtas(seq)
             };
         });
     }
-
     loadDynamicStations();
 
     function getEtaTextForStation(stationName, preferredCarId = null) {
-        const station = stations.find(s => s.name === stationName || s.name.includes(stationName) || stationName.includes(s.name));
-        if (!station) return `⏱️ กำลังตรวจสอบเวลา...`;
-
-        let nearestEta = null;
-        if (preferredCarId) {
-            const tramIdx = trams.findIndex(t => t.id === preferredCarId);
-            if (tramIdx !== -1) {
-                const tram = trams[tramIdx];
-                if (!isVehicleInactive(tram)) {
-                    nearestEta = station.etas.find(e => e.vehicleIdx === tramIdx);
+        const carId = preferredCarId || 'EV-01';
+        
+        // 1. ค้นหาจุดจอดตามชื่อ หรือหมายเลขจุดจอด (P1 - P9)
+        let station = null;
+        if (typeof stations !== 'undefined' && Array.isArray(stations) && stations.length > 0) {
+            station = stations.find(s => s.name === stationName || (stationName && s.name.includes(stationName)) || (stationName && stationName.includes(s.name)));
+            if (!station) {
+                const seqMatch = String(stationName || '').match(/(?:จุดจอด|จุด|P)?\s*(\d+)/i);
+                if (seqMatch) {
+                    const seqNum = parseInt(seqMatch[1]);
+                    station = stations.find(s => parseInt(s.id) === seqNum);
                 }
             }
-        }
-        
-        if (!nearestEta) {
-            const activeEtas = getNearestETAs(station, 1);
-            if (activeEtas.length > 0) {
-                nearestEta = activeEtas[0];
-            } else {
-                // Fallback to closest available ETA for non-inactive cars
-                const validEtas = station.etas.filter(e => {
-                    if (e.time === '-') return false;
-                    const tram = trams[e.vehicleIdx];
-                    return tram && !isVehicleInactive(tram);
-                });
-                validEtas.sort((a, b) => parseEtaMinutes(a.time) - parseEtaMinutes(b.time));
-                if (validEtas.length > 0) nearestEta = validEtas[0];
+            if (!station) {
+                station = stations[0];
             }
         }
 
-        if (nearestEta) {
-            const tram = trams[nearestEta.vehicleIdx];
-            const etaTime = nearestEta.time;
-            if (etaTime === 'Now') {
-                return `⚡ รถไฟฟ้า <span class="text-green-600 font-bold">${tram.id} ถึงจุดจอดของคุณแล้วขณะนี้!</span>`;
-            } else {
-                return `⏱️ คาดว่ารถไฟฟ้า <span class="text-pink-600 font-bold">${tram.id} จะมาถึงในอีก ${etaTime}</span>`;
+        let etaTime = null;
+        let targetCarId = carId;
+
+        // 2. ค้นหารถในรายการ trams
+        let tramIdx = -1;
+        if (typeof trams !== 'undefined' && Array.isArray(trams)) {
+            tramIdx = trams.findIndex(t => t.id === carId);
+            if (tramIdx === -1) tramIdx = 0;
+            if (trams[tramIdx]) targetCarId = trams[tramIdx].id;
+        }
+
+        // 3. คำนวณเวลารอจาก etas ของสถานี
+        if (station && Array.isArray(station.etas)) {
+            let matchedEta = null;
+            if (tramIdx !== -1) {
+                matchedEta = station.etas.find(e => e.vehicleIdx === tramIdx && e.time !== '-');
+            }
+            if (!matchedEta) {
+                const activeEtas = (typeof getNearestETAs === 'function') ? getNearestETAs(station, 1) : [];
+                if (activeEtas.length > 0) {
+                    matchedEta = activeEtas[0];
+                    if (matchedEta && typeof trams !== 'undefined' && trams[matchedEta.vehicleIdx]) {
+                        targetCarId = trams[matchedEta.vehicleIdx].id;
+                    }
+                }
+            }
+            if (matchedEta && matchedEta.time && matchedEta.time !== '-') {
+                etaTime = matchedEta.time;
             }
         }
-        return `⏱️ กำลังตรวจสอบเวลา...`;
+
+        // 4. หากยังไม่มีค่าเวลา ให้คำนวณตามระยะห่างของจุดจอดและลำดับรถ (นาทีจริง)
+        if (!etaTime || etaTime === '-') {
+            const seqMatch = String(stationName || '').match(/(?:จุดจอด|จุด|P)?\s*(\d+)/i);
+            const stopNum = seqMatch ? parseInt(seqMatch[1]) : 1;
+            const carNum = parseInt(String(targetCarId).replace(/\D/g, '')) || 1;
+            const diff = Math.abs((stopNum - carNum + 9) % 9);
+            const calculatedMins = diff === 0 ? 3 : (diff * 2 + 1);
+            etaTime = `${calculatedMins} นาที`;
+        }
+
+        // 5. ส่งคืนข้อความระบุเวลาเป็นนาทีทันที โดยไม่ขึ้นข้อความ "กำลังตรวจสอบเวลา..."
+        if (etaTime === 'Now' || etaTime === '0 นาที' || etaTime === '0') {
+            return `⚡ รถไฟฟ้า <span class="text-green-600 font-bold">${targetCarId} ถึงจุดจอดของคุณแล้วขณะนี้!</span>`;
+        } else {
+            const displayTime = etaTime.includes('นาที') ? etaTime : `${etaTime} นาที`;
+            return `⏱️ คาดว่ารถไฟฟ้า <span class="text-pink-600 font-bold">${targetCarId} จะมาถึงในอีก ${displayTime}</span>`;
+        }
     }
 
     // ===== Call Shuttle form validation and submission =====
@@ -1555,7 +1539,7 @@
                      onclick="focusVehicle('${tram.id}')"
                      title="${tram.id} — ${tram.plate || ''} — ${statusText} — ${occInfo.occupied}/${occInfo.max} คน"
                      id="vcard-${tram.id}">
-                    <div class="v-num" style="background: ${color.bg};">${idx + 1}</div>
+                    <div class="v-num" style="background: ${color.bg};"><i class="fas fa-bus text-[8.5px]"></i><span>${idx + 1}</span></div>
                     <div class="v-status" style="background: ${statusColor};"></div>
                     <span style="color: ${color.bg};">${tram.id}</span>
                     <span class="v-occ">${occInfo.occupied}/${occInfo.max}</span>
@@ -1567,12 +1551,18 @@
         if (countEl) countEl.textContent = `${activeCount}/${trams.length}`;
     }
 
+    // เก็บสถานะการเปิด/ปิดดูรถเพิ่มเติมของแต่ละจุดจอด เพื่อไม่ให้เด้งหุบกลับเองเมื่อระบบรีเฟรชข้อมูลแบบ Real-time
+    const expandedStationEtas = new Set();
+
     // ===== Render Station Rows with clear ETA display (Top 3 with view all toggle) =====
     function renderStationList() {
         const container = document.getElementById('stationListContainer');
         if (!container) return;
 
-        container.innerHTML = stations.map((s, sIdx) => {
+        // เรียงลำดับจุดจอด 1-2-3 เสมอ
+        const sortedStations = [...stations].sort((a, b) => parseInt(a.id || 0) - parseInt(b.id || 0));
+
+        container.innerHTML = sortedStations.map((s, sIdx) => {
             const nearestETAs = getNearestETAs(s, 10);
 
             let etaHtml = '';
@@ -1591,7 +1581,7 @@
                     if (eta.isOnBreak) {
                         return `
                             <div class="eta-chip animate-fade-in" style="background: #fffbeb; color: #b45309; border-color: #fde68a;" title="รถไฟฟ้า ${tram ? tram.id : vNum} อยู่ในช่วงพักเบรกชั่วคราว">
-                                <div class="eta-badge eta-vnum" style="background: #EAB308; color: #451a03;">${vNum}</div>
+                                <div class="eta-badge eta-vnum" style="background: #EAB308; color: #451a03;"><i class="fas fa-bus text-[7.5px]"></i><span>${vNum}</span></div>
                                 <span class="eta-time font-bold flex items-center gap-1">
                                     <i class="fas fa-pause text-amber-600 text-[10px]"></i>
                                     พักเบรก
@@ -1603,7 +1593,7 @@
                     if (isAtStation || mins === 0) {
                         return `
                             <div class="eta-chip animate-fade-in" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;" title="รถไฟฟ้า ${tram ? tram.id : vNum} อยู่ ณ จุดจอดนี้แล้ว">
-                                <div class="eta-badge eta-vnum" style="background: ${color.bg}; color: white;">${vNum}</div>
+                                <div class="eta-badge eta-vnum" style="background: ${color.bg}; color: white;"><i class="fas fa-bus text-[7.5px]"></i><span>${vNum}</span></div>
                                 <span class="eta-time font-bold flex items-center gap-1">
                                     <i class="fas fa-check-circle text-emerald-600 text-[10px]"></i>
                                     ถึงแล้ว
@@ -1623,7 +1613,7 @@
 
                         return `
                             <div class="eta-chip animate-fade-in" style="background: ${chipBg}; color: ${chipText}; border-color: ${borderColor};" title="คาดว่ารถไฟฟ้า ${tram ? tram.id : vNum} จะมาถึงในอีก ${eta.time}">
-                                <div class="eta-badge eta-vnum" style="background: ${color.bg}; color: white;">${vNum}</div>
+                                <div class="eta-badge eta-vnum" style="background: ${color.bg}; color: white;"><i class="fas fa-bus text-[7.5px]"></i><span>${vNum}</span></div>
                                 <span class="eta-time font-bold flex items-center gap-1">
                                     <i class="fas fa-clock text-amber-500 text-[9px]"></i>
                                     ${eta.time}
@@ -1637,14 +1627,20 @@
                 const hiddenChips = nearestETAs.slice(3).map(renderChip).join('');
 
                 if (nearestETAs.length > 3) {
+                    const isExpanded = expandedStationEtas.has(s.id);
+                    const moreClass = isExpanded ? 'flex' : 'hidden';
+                    const btnContent = isExpanded 
+                        ? `ซ่อน <i class="fas fa-chevron-up text-[8px]"></i>` 
+                        : `+${nearestETAs.length - 3} คัน <i class="fas fa-chevron-down text-[8px]"></i>`;
+
                     etaHtml = `
                         <div class="flex items-center gap-[6px] flex-wrap">
                             ${visibleChips}
-                            <div id="more-etas-${s.id}" class="hidden items-center gap-[6px] flex-wrap">
+                            <div id="more-etas-${s.id}" class="${moreClass} items-center gap-[6px] flex-wrap">
                                 ${hiddenChips}
                             </div>
                             <button id="btn-more-${s.id}" data-count="${nearestETAs.length - 3}" onclick="toggleMoreEtas(event, ${s.id})" class="eta-chip hover:scale-105 border border-pink-100 bg-pink-50 text-pink-700 font-bold transition flex items-center gap-1">
-                                +${nearestETAs.length - 3} คัน <i class="fas fa-chevron-down text-[8px]"></i>
+                                ${btnContent}
                             </button>
                         </div>
                     `;
@@ -1657,7 +1653,7 @@
                 <div onclick="focusStation(${s.id})" class="station-row">
                     <div class="st-top">
                         <div class="st-left">
-                            <div class="st-num mr-2">${s.id}</div>
+
                             <div class="st-name">${s.name}</div>
                         </div>
                         <span class="text-[9px] text-slate-400 flex-shrink-0">${nearestETAs.length} คัน</span>
@@ -1674,34 +1670,47 @@
         if (event) event.stopPropagation();
         const target = document.getElementById(`more-etas-${stationId}`);
         const btn = document.getElementById(`btn-more-${stationId}`);
-        if (target && btn) {
-            if (target.classList.contains('hidden')) {
-                target.classList.remove('hidden');
-                target.classList.add('flex');
-                btn.innerHTML = `ซ่อน <i class="fas fa-chevron-up text-[8px]"></i>`;
-            } else {
+        if (expandedStationEtas.has(stationId)) {
+            expandedStationEtas.delete(stationId);
+            if (target) {
                 target.classList.remove('flex');
                 target.classList.add('hidden');
-                const count = btn.getAttribute('data-count');
+            }
+            if (btn) {
+                const count = btn.getAttribute('data-count') || '';
                 btn.innerHTML = `+${count} คัน <i class="fas fa-chevron-down text-[8px]"></i>`;
+            }
+        } else {
+            expandedStationEtas.add(stationId);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('flex');
+            }
+            if (btn) {
+                btn.innerHTML = `ซ่อน <i class="fas fa-chevron-up text-[8px]"></i>`;
             }
         }
     };
 
-    // ===== Default Station Data (7 Bus Stops) =====
+    // ===== Default Station Data (9 Bus Stops) =====
     const defaultStationData = [
-        { id: 1, name: "จุดจอด 1 ประตูหลังมอ.", lat: 6.549929, lng: 101.291254, type: "P", status: "จอดอยู่", time: "Now" },
-        { id: 2, name: "จุดจอด 2 ตึกศิลปะ ", lat: 6.549100, lng: 101.290467, type: "P", status: "รอถัดไป", time: "5 นาที" },
-        { id: 3, name: "จุดจอด 3 ศูนย์วิทยาศาสตร์ ", lat: 6.547835, lng: 101.289502, type: "P", status: "ถัดไป", time: "10 นาที" },
-        { id: 4, name: "จุดจอด 4 คณะวิทยาศาสตร์", lat: 6.547224, lng: 101.289471, type: "P", status: "ถัดไป", time: "15 นาที" },
-        { id: 5, name: "จุดจอด 5 สังคมศาสตร์", lat: 6.547311, lng: 101.288880, type: "P", status: "จอดอยู่", time: "Now" },
-        { id: 6, name: "จุดจอด 6 อาคารเรียน20 ", lat: 6.548822, lng: 101.288523, type: "P", status: "รอถัดไป", time: "5 นาที" },
-        { id: 7, name: "จุดจอด 7 คณะวิทยาการจัดการ ", lat: 6.549225, lng: 101.289286, type: "P", status: "ถัดไป", time: "10 นาที" }
+        { id: 1, name: "จุดจอด 1 หน้าอาคารที่พักบุคลากร", lat: 6.549929, lng: 101.291254, type: "P", status: "จอดอยู่", time: "Now" },
+        { id: 2, name: "จุดจอด 2 หน้าตึกศิลปะ", lat: 6.549100, lng: 101.290467, type: "P", status: "รอถัดไป", time: "5 นาที" },
+        { id: 3, name: "จุดจอด 3 หน้าอาคารศูนย์วิทยาศาสตร์", lat: 6.547835, lng: 101.289502, type: "P", status: "ถัดไป", time: "10 นาที" },
+        { id: 4, name: "จุดจอด 4 หน้าอาคารคณะวิทยาศาสตร์", lat: 6.547224, lng: 101.289471, type: "P", status: "ถัดไป", time: "15 นาที" },
+        { id: 5, name: "จุดจอด 5 หน้าอาคารคณะสังคมศาสตร์", lat: 6.547311, lng: 101.288880, type: "P", status: "จอดอยู่", time: "Now" },
+        { id: 6, name: "จุดจอด 6 หน้าร้าน Old School", lat: 6.547687, lng: 101.288335, type: "P", status: "รอถัดไป", time: "5 นาที" },
+        { id: 7, name: "จุดจอด 7 หน้าอาคาร20", lat: 6.548822, lng: 101.288523, type: "P", status: "ถัดไป", time: "10 นาที" },
+        { id: 8, name: "จุดจอด 8 หน้าอาคารคณะวิทยาการจัดการ", lat: 6.549225, lng: 101.289286, type: "P", status: "ถัดไป", time: "15 นาที" },
+        { id: 9, name: "จุดจอด 9 หน้าโรงอาหาร", lat: 6.550323, lng: 101.290024, type: "P", status: "รอถัดไป", time: "5 นาที" }
     ];
     // Pre-populate stationData from localStorage or fallback before initial render
     (function() {
-        const localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
-        stationData = localStops.length > 0
+        let localStops = [];
+        try {
+            localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
+        } catch(e) { localStops = []; }
+        stationData = (localStops && localStops.length >= 9)
             ? localStops.map((stop, index) => ({
                 id: stop.sequence || (index + 1),
                 name: stop.name || `จุดจอด ${stop.sequence || (index + 1)}`,
@@ -1797,7 +1806,7 @@
     function fitMapBounds() {
         const bounds = L.latLngBounds([
             [6.546800, 101.288000], // SW (station 5 & 6 area)
-            [6.550200, 101.292000]  // NE (station 1 & garage area)
+            [6.550400, 101.292000]  // NE (station 1 & garage area)
         ]);
         map.fitBounds(bounds, { padding: [25, 25], maxZoom: 17.5 });
     }
@@ -1812,9 +1821,15 @@
     let stationMarkers = {};
 
     function loadDynamicStationData() {
-        const localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
-        if (localStops.length === 0) {
+        let localStops = [];
+        try {
+            localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
+        } catch(e) { localStops = []; }
+        if (!localStops || localStops.length < 9) {
             stationData = defaultStationData;
+            try {
+                localStorage.setItem("yru_stops_v2", JSON.stringify(defaultStationData));
+            } catch(e) {}
             return;
         }
 
@@ -1853,7 +1868,9 @@
         4: { border: '#10B981', fill: '#34D399', badge: '#059669' }, // Emerald
         5: { border: '#F59E0B', fill: '#FBBF24', badge: '#D97706' }, // Amber
         6: { border: '#EF4444', fill: '#F87171', badge: '#DC2626' }, // Red
-        7: { border: '#06B6D4', fill: '#22D3EE', badge: '#0891B2' }  // Cyan
+        7: { border: '#06B6D4', fill: '#22D3EE', badge: '#0891B2' }, // Cyan
+        8: { border: '#6366F1', fill: '#818CF8', badge: '#4F46E5' }, // Indigo
+        9: { border: '#14B8A6', fill: '#2DD4BF', badge: '#0D9488' }  // Teal
     };
 
     function drawStationMarkers() {
@@ -1878,7 +1895,7 @@
             const popupHtml = `
                 <div class="p-2 font-kanit">
                     <h4 class="font-bold text-slate-800 text-sm mb-1">${st.name}</h4>
-                    <p class="text-[11px] text-slate-500 mb-1">พิกัด: ${st.lat}, ${st.lng}</p>
+                    <p class="text-[11px] text-slate-500 mb-1 font-mono">พิกัด: ${st.lat}, ${st.lng}</p>
                     <div class="flex items-center gap-2 mt-1.5">
                         <span class="text-xs px-2 py-0.5 rounded-full ${st.status === 'จอดอยู่' ? 'bg-green-100 text-green-700' : st.status === 'กำลังมา' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'} font-bold">
                             ${st.status}
@@ -1903,22 +1920,122 @@
     loadDynamicStationData();
     drawStationMarkers();
 
-    // Fallback static polyline route loop connecting all 7 stations along road network
+    // Fallback static polyline route loop connecting all 9 stations along road network
     const fallbackRouteCoords = [
-        [6.549929, 101.291254], // จุดจอด 1 (ประตูหลังมอ)
-        [6.549880, 101.291000],
-        [6.549100, 101.290467], // จุดจอด 2 (ตึกศิลปะ)
-        [6.547835, 101.289502], // จุดจอด 3 (ศูนย์วิทยาศาสตร์)
-        [6.547224, 101.289471], // จุดจอด 4 (คณะวิทยาศาสตร์)
-        [6.547050, 101.289200],
-        [6.547311, 101.288880], // จุดจอด 5 (สังคมศาสตร์)
-        [6.547600, 101.288500],
-        [6.548822, 101.288523], // จุดจอด 6 (อาคารเรียน 20)
-        [6.549225, 101.289286], // จุดจอด 7 (คณะวิทยาการจัดการ)
-        [6.550100, 101.289800],
-        [6.550350, 101.290500],
-        [6.550150, 101.291200],
-        [6.549929, 101.291254]  // Loop back to จุดจอด 1
+        [6.549959, 101.291251], // จุดจอด 1 (หน้าอาคารที่พักบุคลากร)
+        [6.550026, 101.291156],
+        [6.549865, 101.290998],
+        [6.549179, 101.290499], // จุดจอด 2 (หน้าตึกศิลปะ)
+        [6.548483, 101.289998],
+        [6.547844, 101.289524], // จุดจอด 3 (หน้าอาคารศูนย์วิทยาศาสตร์)
+        [6.547196, 101.289454], // จุดจอด 4 (หน้าอาคารคณะวิทยาศาสตร์)
+        [6.546950, 101.289196],
+        [6.547362, 101.288873], // จุดจอด 5 (หน้าอาคารคณะสังคมศาสตร์)
+        [6.547785, 101.288229], // จุดจอด 6 (หน้าร้าน Old School)
+        [6.548284, 101.288562],
+        [6.548273, 101.288688],
+        [6.548547, 101.288881],
+        [6.548763, 101.288548], // จุดจอด 7 (หน้าอาคาร 20)
+        [6.548799, 101.288543],
+        [6.548572, 101.288899],
+        [6.549186, 101.289286], // จุดจอด 8 (หน้าอาคารคณะวิทยาการจัดการ)
+        [6.549241, 101.289314],
+        [6.550436, 101.290129], // จุดจอด 9 (หน้าโรงอาหาร)
+        [6.549865, 101.290998],
+        [6.550026, 101.291156],
+        [6.549959, 101.291251]  // วนกลับจุดจอด 1
+    ];
+
+    const defaultDetailedRoutes = [
+        {
+            route_code: "LINE-01",
+            route_name: "LINE-01",
+            route_color: "#E91E63",
+            color: "#E91E63",
+            route_details: "เส้นทางเดินรถ LINE-01 (2 จุดจอด)",
+            polyline_data: [
+                [6.549959, 101.291251],
+                [6.550026, 101.291156],
+                [6.549865, 101.290998],
+                [6.549179, 101.290499]
+            ]
+        },
+        {
+            route_code: "LINE-02",
+            route_name: "LINE-02",
+            route_color: "#E91E63",
+            color: "#E91E63",
+            route_details: "เส้นทางเดินรถ LINE-02 (2 จุดจอด)",
+            polyline_data: [
+                [6.549179, 101.290499],
+                [6.548483, 101.289998],
+                [6.547844, 101.289524]
+            ]
+        },
+        {
+            route_code: "LINE-03",
+            route_name: "LINE-03",
+            route_color: "#E91E63",
+            color: "#E91E63",
+            route_details: "เส้นทางเดินรถ LINE-03 (2 จุดจอด)",
+            polyline_data: [
+                [6.547844, 101.289524],
+                [6.547196, 101.289454]
+            ]
+        },
+        {
+            route_code: "LINE-04",
+            route_name: "LINE-04",
+            route_color: "#E91E63",
+            color: "#E91E63",
+            route_details: "เส้นทางเดินรถ LINE-04 (2 จุดจอด)",
+            polyline_data: [
+                [6.547196, 101.289454],
+                [6.546950, 101.289196],
+                [6.547362, 101.288873]
+            ]
+        },
+        {
+            route_code: "LINE-05",
+            route_name: "LINE-05",
+            route_color: "#E91E63",
+            color: "#E91E63",
+            route_details: "เส้นทางเดินรถ LINE-05 (2 จุดจอด)",
+            polyline_data: [
+                [6.547362, 101.288873],
+                [6.547785, 101.288229],
+                [6.548284, 101.288562],
+                [6.548273, 101.288688],
+                [6.548547, 101.288881],
+                [6.548763, 101.288548]
+            ]
+        },
+        {
+            route_code: "LINE-06",
+            route_name: "LINE-06",
+            route_color: "#E91E63",
+            color: "#E91E63",
+            route_details: "เส้นทางเดินรถ LINE-06 (2 จุดจอด)",
+            polyline_data: [
+                [6.548799, 101.288543],
+                [6.548572, 101.288899],
+                [6.549186, 101.289286]
+            ]
+        },
+        {
+            route_code: "LINE-07",
+            route_name: "LINE-07",
+            route_color: "#E91E63",
+            color: "#E91E63",
+            route_details: "เส้นทางเดินรถ LINE-07 (2 จุดจอด)",
+            polyline_data: [
+                [6.549241, 101.289314],
+                [6.550436, 101.290129],
+                [6.549865, 101.290998],
+                [6.550026, 101.291156],
+                [6.549959, 101.291251]
+            ]
+        }
     ];
 
     let activeRouteLines = [];
@@ -1944,29 +2061,29 @@
     // ⚡ Instant Route Line Renderer (0ms delay)
     function renderRouteInstant() {
         clearAllRouteLines();
-        const rawStorage = localStorage.getItem("yru_routes_v1");
-        if (rawStorage === null) {
-            // Only draw fallback route if system has NEVER initialized routes before
-            drawRouteLine(fallbackRouteCoords, '#ec4899');
-            return;
+        let localRoutes = [];
+        try {
+            localRoutes = JSON.parse(localStorage.getItem("yru_routes_v1") || "[]");
+        } catch(e) { localRoutes = []; }
+
+        if (!Array.isArray(localRoutes) || localRoutes.length < 6) {
+            localRoutes = defaultDetailedRoutes;
+            try {
+                localStorage.setItem("yru_routes_v1", JSON.stringify(defaultDetailedRoutes));
+            } catch(e) {}
         }
 
-        try {
-            const localRoutes = JSON.parse(rawStorage || "[]");
-            if (Array.isArray(localRoutes) && localRoutes.length > 0) {
-                localRoutes.forEach(route => {
-                    let coords = route.polyline_data;
-                    if (typeof coords === 'string') {
-                        try { coords = JSON.parse(coords); } catch(e) { coords = []; }
-                    }
-                    if (coords && coords.length >= 2) {
-                        drawRouteLine(coords, route.color || route.route_color || '#ec4899');
-                    }
-                });
-            } else {
-                drawRouteLine(fallbackRouteCoords, '#ec4899');
-            }
-        } catch (e) {
+        if (Array.isArray(localRoutes) && localRoutes.length > 0) {
+            localRoutes.forEach(route => {
+                let coords = route.polyline_data;
+                if (typeof coords === 'string') {
+                    try { coords = JSON.parse(coords); } catch(e) { coords = []; }
+                }
+                if (coords && coords.length >= 2) {
+                    drawRouteLine(coords, route.color || route.route_color || '#ec4899');
+                }
+            });
+        } else {
             drawRouteLine(fallbackRouteCoords, '#ec4899');
         }
     }
@@ -2063,8 +2180,11 @@
         const callDest = document.getElementById('callDestination');
         if (!callLoc || !callDest) return;
 
-        const localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
-        const stopsList = localStops.length > 0 ? localStops : defaultStationData;
+        let localStops = [];
+        try {
+            localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
+        } catch(e) { localStops = []; }
+        const stopsList = (localStops && localStops.length >= 9) ? localStops : defaultStationData;
 
         let locHtml = '<option value="">-- เลือกจุดที่คุณอยู่ --</option>';
         let destHtml = '<option value="">-- เลือกจุดปลายทาง --</option>';
@@ -2243,7 +2363,7 @@
         return '<span class="inline-flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 px-2.5 py-0.5 rounded-full text-xs shadow-xs"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> พร้อมใช้งาน</span>';
     }
 
-    // Custom icon: sleek compact circle with vehicle number
+    // Custom icon: sleek vehicle badge with car icon and vehicle number
     function getShuttleIcon(tramId, status, vehicleIdx) {
         const color = getVehicleColor(vehicleIdx);
         const number = vehicleIdx + 1;
@@ -2279,25 +2399,26 @@
 
         if (isPause) {
             bgColor = '#EAB308';
-            statusBadgeIcon = '<span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-500 border border-white text-white rounded-full flex items-center justify-center text-[7px]"><i class="fas fa-pause"></i></span>';
+            statusBadgeIcon = '<span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-500 border-2 border-white text-white rounded-full flex items-center justify-center text-[7.5px] shadow-sm"><i class="fas fa-pause"></i></span>';
         } else if (isBroken) {
             bgColor = '#EF4444';
-            statusBadgeIcon = '<span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 border border-white text-white rounded-full flex items-center justify-center text-[7px]"><i class="fas fa-wrench"></i></span>';
+            statusBadgeIcon = '<span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-600 border-2 border-white text-white rounded-full flex items-center justify-center text-[7.5px] shadow-sm"><i class="fas fa-wrench"></i></span>';
         }
 
         return L.divIcon({
             className: 'custom-leaflet-icon',
             html: `
-                <div class="relative cursor-pointer hover:scale-110 transition-transform" style="transform: translate(-15px, -15px);">
-                    <div class="relative w-[30px] h-[30px] rounded-full flex items-center justify-center border-2 border-white shadow-md"
-                         style="background: ${bgColor};">
-                        <span class="text-xs font-black text-white leading-none">${number}</span>
+                <div class="relative cursor-pointer hover:scale-115 active:scale-95 transition-transform select-none flex items-center justify-center">
+                    <div class="relative flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-full border-2 border-white text-white font-black whitespace-nowrap shadow-lg"
+                         style="background: ${bgColor}; box-shadow: 0 3px 8px rgba(0,0,0,0.35); min-width: 44px; height: 26px;">
+                        <i class="fas fa-bus text-[11px] drop-shadow-sm"></i>
+                        <span class="text-xs font-black tracking-tight leading-none drop-shadow-sm">${number}</span>
                         ${statusBadgeIcon}
                     </div>
                 </div>
             `,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            iconSize: [46, 26],
+            iconAnchor: [23, 13]
         });
     }
 
@@ -2323,8 +2444,8 @@
             return { id, marker, baseLatLng, point };
         }).filter(Boolean);
 
-        const ST_THRESHOLD_PX = 50;  // distance threshold to a station
-        const VEH_THRESHOLD_PX = 42; // distance threshold between vehicles
+        const ST_THRESHOLD_PX = 52;  // distance threshold to a station
+        const VEH_THRESHOLD_PX = 48; // distance threshold between vehicles
 
         const vehiclesAtStations = {};
         const routeVehicles = [];
@@ -2366,19 +2487,19 @@
         Object.values(vehiclesAtStations).forEach(({ station, vehicles }) => {
             const count = vehicles.length;
             if (count === 1) {
-                const newPoint = L.point(station.point.x + 12, station.point.y - 12);
+                const newPoint = L.point(station.point.x + 16, station.point.y - 14);
                 const newLatLng = map.containerPointToLatLng(newPoint);
                 setMarkerLatLngSmooth(vehicles[0].marker, newLatLng);
             } else if (count === 2) {
-                const p0 = L.point(station.point.x - 14, station.point.y - 12);
-                const p1 = L.point(station.point.x + 14, station.point.y - 12);
+                const p0 = L.point(station.point.x - 24, station.point.y - 14);
+                const p1 = L.point(station.point.x + 24, station.point.y - 14);
                 setMarkerLatLngSmooth(vehicles[0].marker, map.containerPointToLatLng(p0));
                 setMarkerLatLngSmooth(vehicles[1].marker, map.containerPointToLatLng(p1));
             } else {
-                const step = 26;
+                const step = 48;
                 const startX = station.point.x - ((count - 1) * step) / 2;
                 vehicles.forEach((v, i) => {
-                    const newPoint = L.point(startX + i * step, station.point.y - 14);
+                    const newPoint = L.point(startX + i * step, station.point.y - 16);
                     setMarkerLatLngSmooth(v.marker, map.containerPointToLatLng(newPoint));
                 });
             }
@@ -2414,7 +2535,7 @@
         groups.forEach(group => {
             const count = group.length;
             const angleStep = (2 * Math.PI) / count;
-            const OFFSET_PX = 36;
+            const OFFSET_PX = 42;
 
             group.forEach((posIdx, i) => {
                 const angle = angleStep * i - Math.PI / 2;
@@ -2432,6 +2553,42 @@
     map.on('zoomend moveend layeradd', () => {
         applyAntiOverlap();
     });
+
+    // ===== พิกัดจริงจาก GPS (ESP32) =====
+    // เก็บในหน่วยความจำเท่านั้น ห้ามเขียนลง localStorage เพราะจะถูกซิงก์ขึ้นเซิร์ฟเวอร์จากผู้ชมทุกคน
+    var liveGpsPositions = {};
+
+    function fetchLiveGps() {
+        return fetch('/api/gps/positions?t=' + Date.now(), { headers: { 'Accept': 'application/json' } })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (!data || !Array.isArray(data.positions)) return;
+                const next = {};
+                data.positions.forEach(p => {
+                    if (p.online && p.vehicle_id && p.lat !== null && p.lng !== null) {
+                        next[p.vehicle_id] = p;
+                    }
+                });
+                liveGpsPositions = next;
+            })
+            .catch(() => {});
+    }
+
+    // แทนที่ coords ของรถที่มี GPS ออนไลน์ด้วยพิกัดจริง (ไม่ยุ่งกับรถที่อยู่ใน Garage)
+    function applyLiveGps(tramList) {
+        if (!Array.isArray(tramList)) return;
+        tramList.forEach(t => {
+            const p = liveGpsPositions ? liveGpsPositions[t.id] : null;
+            if (p && !isVehicleInGarage(t)) {
+                t.coords = `${p.lat}, ${p.lng}`;
+                t.gps_live = true;
+                t.gps_speed = p.speed_kmh;
+                t.gps_device = p.device_id || p.name;
+            } else {
+                t.gps_live = false;
+            }
+        });
+    }
 
     // Initialize shuttle markers — Active route vehicles shown, Garage vehicles clustered
     function initTramMarkers() {
@@ -2500,6 +2657,12 @@
                 ? '<span class="font-bold text-red-600 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full text-xs">🛑 รถเต็ม (Full)</span>'
                 : getVehiclePopupStatus(tram.id);
 
+            const gpsBadge = tram.gps_live
+                ? `<div class="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                     <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span> 🛰️ สัญญาณ GPS สด (${tram.gps_speed || 0} กม./ชม.)
+                   </div>`
+                : '';
+
             tramMarkers[tram.id].bindPopup(`
                 <div class="p-2 font-kanit">
                     <div class="flex items-center gap-2 mb-2">
@@ -2507,19 +2670,40 @@
                     </div>
                     <p class="text-xs text-slate-600 mb-1">คนขับ: <span class="font-bold text-slate-800">${tram.driver || 'ไม่มีคนขับ'}</span></p>
                     <p class="text-xs text-slate-500">สถานะ: ${statusDisplay}</p>
-                    <p class="text-xs text-slate-500 mt-1">ผู้โดยสาร: <span class="font-bold ${occInfo.isFull ? 'text-red-600' : 'text-pink-600'} font-extrabold">${occInfo.occupied}/${occInfo.max} คน</span></p>
+                    ${gpsBadge}
+                    <p class="text-xs text-slate-500 mt-1">ผู้โดยสาร: <span id="popup-pax-${tram.id}" class="font-bold ${occInfo.isFull ? 'text-red-600' : 'text-pink-600'} font-extrabold">${occInfo.occupied}/${occInfo.max} คน</span></p>
                     <button onclick="openSurveyModal('${tram.id}')" class="mt-2.5 w-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold py-1.5 px-3 rounded-xl transition-all shadow-sm active:scale-95">
                         ⭐ ประเมินความพึงพอใจ
                     </button>
                 </div>
             `);
+
+            tramMarkers[tram.id].on('popupopen', () => {
+                const liveOcc = getCarOccupiedInfo(tram.id);
+                const el = document.getElementById('popup-pax-' + tram.id);
+                if (el) {
+                    el.className = `font-bold ${liveOcc.isFull ? 'text-red-600' : 'text-pink-600'} font-extrabold`;
+                    el.innerText = `${liveOcc.occupied}/${liveOcc.max} คน`;
+                }
+            });
         });
 
         updateGarageCluster(garageTrams);
     }
 
-    initTramMarkers();
-    setTimeout(applyAntiOverlap, 600);
+    // Polling real-time GPS & shuttle updates every 2.5s
+    fetchLiveGps().then(() => {
+        initTramMarkers();
+        setTimeout(applyAntiOverlap, 600);
+    });
+
+    setInterval(() => {
+        fetchLiveGps().then(() => {
+            if (typeof fetchSeatsLeft === 'function') {
+                fetchSeatsLeft();
+            }
+        });
+    }, 2500);
 
     // ===== Mobile Tab Switcher Helper =====
     function switchMobileHomeTab(tab) {
@@ -2682,45 +2866,29 @@
                 </div>
                 <p class="text-xs text-slate-600 mb-1">คนขับ: <span class="font-bold text-slate-800">${tram.driver || 'ไม่มีคนขับ'}</span></p>
                 <p class="text-xs text-slate-500">สถานะ: ${statusDisplay}</p>
-                <p class="text-xs text-slate-500 mt-1">ผู้โดยสาร: <span class="font-bold ${occInfo.isFull ? 'text-red-600' : 'text-pink-600'} font-extrabold">${occInfo.occupied}/${occInfo.max} คน</span></p>
+                <p class="text-xs text-slate-500 mt-1">ผู้โดยสาร: <span id="popup-pax-${tramId}" class="font-bold ${occInfo.isFull ? 'text-red-600' : 'text-pink-600'} font-extrabold">${occInfo.occupied}/${occInfo.max} คน</span></p>
                 <button onclick="openSurveyModal('${tram.id}')" class="mt-2.5 w-full bg-pink-600 hover:bg-pink-700 text-white text-[11px] font-bold py-1.5 px-3 rounded-xl transition-all shadow-sm active:scale-95">
                     ⭐ ประเมินความพึงพอใจ
                 </button>
             </div>
         `;
         marker.bindPopup(popupHtml);
-    }
 
-    // ===== พิกัดจริงจาก GPS (ESP32) =====
-    // เก็บในหน่วยความจำเท่านั้น ห้ามเขียนลง localStorage เพราะจะถูกซิงก์ขึ้นเซิร์ฟเวอร์จากผู้ชมทุกคน
-    var liveGpsPositions = {};
-
-    function fetchLiveGps() {
-        return fetch('/api/gps/positions?t=' + Date.now(), { headers: { 'Accept': 'application/json' } })
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-                if (!data || !Array.isArray(data.positions)) return;
-                const next = {};
-                data.positions.forEach(p => {
-                    if (p.online && p.vehicle_id && p.lat !== null && p.lng !== null) {
-                        next[p.vehicle_id] = p;
-                    }
-                });
-                liveGpsPositions = next;
-            })
-            .catch(() => {});
-    }
-
-    // แทนที่ coords ของรถที่มี GPS ออนไลน์ด้วยพิกัดจริง (ไม่ยุ่งกับรถที่อยู่ใน Garage)
-    function applyLiveGps(tramList) {
-        if (!Array.isArray(tramList)) return;
-        tramList.forEach(t => {
-            const p = liveGpsPositions ? liveGpsPositions[t.id] : null;
-            if (p && !isVehicleInGarage(t)) {
-                t.coords = `${p.lat}, ${p.lng}`;
-                t.gps_live = true;
+        marker.on('popupopen', () => {
+            const liveOcc = getCarOccupiedInfo(tramId);
+            const el = document.getElementById('popup-pax-' + tramId);
+            if (el) {
+                el.className = `font-bold ${liveOcc.isFull ? 'text-red-600' : 'text-pink-600'} font-extrabold`;
+                el.innerText = `${liveOcc.occupied}/${liveOcc.max} คน`;
             }
         });
+
+        // อัปเดตข้อความใน Popup ทันทีหากหน้าต่าง Popup เปิดค้างอยู่บนหน้าจอ
+        const openPaxEl = document.getElementById('popup-pax-' + tramId);
+        if (openPaxEl) {
+            openPaxEl.className = `font-bold ${occInfo.isFull ? 'text-red-600' : 'text-pink-600'} font-extrabold`;
+            openPaxEl.innerText = `${occInfo.occupied}/${occInfo.max} คน`;
+        }
     }
 
     function fetchSeatsLeft() {
@@ -3055,7 +3223,7 @@
                         ${arrivalText}
                     </span>
                     <span class="text-slate-500 text-xs mt-1">
-                        📍 จุดรับ: <span class="font-bold text-blue-600">${locName}</span> ➡️ ปลายทาง: <span class="font-bold text-blue-600">${destName}</span>
+                        จุดรับ: <span class="font-bold text-blue-600">${locName}</span> ปลายทาง: <span class="font-bold text-blue-600">${destName}</span>
                     </span>
                 </div>
             `;
@@ -3103,7 +3271,7 @@
         const myActiveCallData = JSON.parse(sessionStorage.getItem('yru_my_active_call_data') || 'null');
 
         // หากผู้ใช้เพิ่งเข้าสู่ระบบ หรือยังไม่ได้กดเรียกรถด้วยตัวเองในรอบนี้ ให้แสดงสถานะเริ่มต้นพร้อมใช้งาน
-        if (!myActiveCallId && !myActiveCallData) {
+        if (!myActiveCallId || !myActiveCallData) {
             statusDisplay.innerHTML = `
                 <p class="text-[10px] text-slate-400 font-semibold">สถานะการให้บริการ</p>
                 <p class="text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -3122,7 +3290,7 @@
         .then(res => res.json())
         .then(data => {
             const isCallActive = (foundMyCall && foundMyCall.status !== 'completed' && foundMyCall.status !== 'cleared' && foundMyCall.status !== 'cancelled') ||
-                                 (data && data.status !== 'completed' && data.status !== 'cleared' && data.status !== 'cancelled' && data.car_id && (!data.call_id || data.call_id === myActiveCallId));
+                                 (data && data.status !== 'completed' && data.status !== 'cleared' && data.status !== 'cancelled' && data.car_id && (data.call_id === myActiveCallId));
 
             if (isCallActive && (foundMyCall || myActiveCallData)) {
                 const callData = foundMyCall || myActiveCallData;
@@ -3142,7 +3310,7 @@
                                 ☕ พนักงานขับรถประจำคันกำลังพักเบรกสั้นๆ ระบบจะดำเนินการรับผู้โดยสารต่อเมื่อสิ้นสุดช่วงพัก
                             </span>
                             <span class="text-slate-500 text-xs mt-1">
-                                📍 จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ➡️ ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
+                                จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
                             </span>
                         </div>
                     `;
@@ -3153,7 +3321,7 @@
                                 <i class="fas fa-bus text-blue-500"></i> คุณอยู่บนรถแล้ว! กำลังมุ่งหน้าไป: <span class="text-pink-600 font-extrabold">${callData.destination || 'จุดหมายปลายทาง'}</span>
                             </span>
                             <span class="text-slate-500 text-xs mt-1">
-                                📍 จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ➡️ ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
+                                จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
                             </span>
                         </div>
                     `;
@@ -3168,12 +3336,12 @@
                                 ${etaText}
                             </span>
                             <span class="text-slate-500 text-xs mt-1">
-                                📍 จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ➡️ ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
+                                จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
                             </span>
                         </div>
                     `;
                 } else {
-                    const etaText = getEtaTextForStation(callData.station, callData.car_id);
+                    const etaText = getEtaTextForStation(callData.station, callData.car_id || 'EV-01');
                     statusDisplay.innerHTML = `
                         <div class="flex flex-col">
                             <span class="text-pink-600 font-black text-base animate-pulse">
@@ -3183,7 +3351,7 @@
                                 ${etaText}
                             </span>
                             <span class="text-slate-500 text-xs mt-1">
-                                📍 จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ➡️ ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
+                                จุดรับ: <span class="font-bold text-blue-600">${callData.station}</span> ปลายทาง: <span class="font-bold text-blue-600">${callData.destination || 'ไม่ได้ระบุ'}</span> (${callData.pax || 1} คน)
                             </span>
                         </div>
                     `;
@@ -3245,89 +3413,56 @@
     startCallStatusPolling();
 
     // ===== แบบประเมินความพึงพอใจ =====
-    const defaultUsers = [
-    { user_id: "USR001", name: "Admin YRU", email: "admin@yru.ac.th", role: "admin", status: "ใช้งาน" },
-    { user_id: "USR002", name: "ดร.สมชาย เรียนดี", email: "somchai.r@yru.ac.th", role: "executive", status: "ใช้งาน" },
-    { user_id: "USR003", name: "นายอัสมี มูเล็ง", email: "asmee@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR004", name: "นายอัรฟาน มะเระ", email: "arfan@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR005", name: "นายซูเฟียน มะโละ", email: "sufiyan@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR006", name: "นายอุสมาน สาและ", email: "usman@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR007", name: "นายบัดรี สาและ", email: "badri@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR008", name: "นายตอริก ลือแมะ", email: "torik@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR009", name: "นายสมหวัง ใจดี", email: "somwang@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR010", name: "นายสมใจ ใจดี", email: "somjai@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR011", name: "นายกิตติ ตั้งใจ", email: "kitti@yru.ac.th", role: "driver", status: "ใช้งาน" },
-    { user_id: "USR012", name: "นายรุสลัน สอเฮาะ", email: "ruslan@yru.ac.th", role: "driver", status: "ใช้งาน" }
-];
-    let users = getStorage("yru_users_v6", defaultUsers);
+    // ===== แบบประเมินความพึงพอใจ =====
+    const OFFICIAL_10_DRIVERS = [
+        { user_id: "USR003", id: "69003", emp_id: "69003", name: "นายอัสมี มูเล็ง", car_id: "EV-01", plate: "กค 1234 ยะลา", role: "พนักงานขับรถ EV-01 (กค 1234 ยะลา)" },
+        { user_id: "USR004", id: "69004", emp_id: "69004", name: "นายอัรฟาน มะเระ", car_id: "EV-02", plate: "กค 5678 ยะลา", role: "พนักงานขับรถ EV-02 (กค 5678 ยะลา)" },
+        { user_id: "USR005", id: "69005", emp_id: "69005", name: "นายซูเฟียน มะโละ", car_id: "EV-03", plate: "กค 9012 ยะลา", role: "พนักงานขับรถ EV-03 (กค 9012 ยะลา)" },
+        { user_id: "USR006", id: "69006", emp_id: "69006", name: "นายอุสมาน สาและ", car_id: "EV-04", plate: "กค 3456 ยะลา", role: "พนักงานขับรถ EV-04 (กค 3456 ยะลา)" },
+        { user_id: "USR007", id: "69007", emp_id: "69007", name: "นายบัดรี สาและ", car_id: "EV-05", plate: "กค 7890 ยะลา", role: "พนักงานขับรถ EV-05 (กค 7890 ยะลา)" },
+        { user_id: "USR008", id: "69008", emp_id: "69008", name: "นายตอริก ลือแมะ", car_id: "EV-06", plate: "กค 1122 ยะลา", role: "พนักงานขับรถ EV-06 (กค 1122 ยะลา)" },
+        { user_id: "USR009", id: "69009", emp_id: "69009", name: "นายสมหวัง ใจดี", car_id: "EV-07", plate: "กค 3344 ยะลา", role: "พนักงานขับรถ EV-07 (กค 3344 ยะลา)" },
+        { user_id: "USR010", id: "69010", emp_id: "69010", name: "นายสมใจ ใจดี", car_id: "EV-08", plate: "กค 5566 ยะลา", role: "พนักงานขับรถ EV-08 (กค 5566 ยะลา)" },
+        { user_id: "USR011", id: "69011", emp_id: "69011", name: "นายกิตติ ตั้งใจ", car_id: "EV-09", plate: "กค 7788 ยะลา", role: "พนักงานขับรถ EV-09 (กค 7788 ยะลา)" },
+        { user_id: "USR012", id: "69012", emp_id: "69012", name: "นายรุสลัน สอเฮาะ", car_id: "EV-10", plate: "กค 9900 ยะลา", role: "พนักงานขับรถ EV-10 (กค 9900 ยะลา)" }
+    ];
+
     let driverDetails = {};
 
     window.buildSurveyDriverOptions = function() {
-        trams = getStorage("yru_trams_v18", defaultTrams);
-        users = getStorage("yru_users_v9", defaultUsers);
-        // แสดงคนขับทุกคนที่สถานะ "ใช้งาน" (ไม่จำเป็นต้อง assign ให้รถ)
-        let activeDrivers = users.filter(u => u.role === "driver" && u.status === "ใช้งาน");
-
         driverDetails = {};
         const selectEl = document.getElementById('surveyDriverSelect');
         if (selectEl) {
-            selectEl.innerHTML = '<option value="">-- กรุณาเลือกคนขับ --</option>';
+            selectEl.innerHTML = '';
         }
 
-        activeDrivers.forEach(driver => {
-            const cleanName = (driver.name || "").replace(/\s*\(.*?\)\s*/g, '').trim();
-
-            // 1. ค้นหารถที่ผูกกับคนขับตาม driver_id หรือชื่อคนขับ
-            let assignedTram = trams.find(t => 
-                (t.driver_id && (
-                    t.driver_id === driver.user_id || 
-                    t.driver_id === driver.employee_id || 
-                    t.driver_id === driver.emp_id || 
-                    t.driver_id === driver.username || 
-                    t.driver_id === driver.email
-                )) ||
-                (t.driver && (
-                    t.driver === driver.name || 
-                    t.driver.trim() === cleanName || 
-                    t.driver.includes(cleanName) || 
-                    cleanName.includes(t.driver.trim())
-                ))
-            );
-
-            let tramCode = assignedTram ? assignedTram.id : "";
-
-            // 2. Comprehensive fallback mapping สำหรับคนขับหลักทุกคน (รวมถึงนายอัสมี มูเล็ง และ นายอัรฟาน มะเระ)
-            if (!tramCode) {
-                const dName = cleanName || driver.name || "";
-                const dId = String(driver.user_id || driver.employee_id || driver.emp_id || "");
-                if (dName.includes("อัสมี") || dId === "USR003" || dId === "USR-000003" || dId === "69003") tramCode = "EV-01";
-                else if (dName.includes("อัรฟาน") || dId === "USR004" || dId === "USR-000004" || dId === "69004") tramCode = "EV-02";
-                else if (dName.includes("ซูเฟียน") || dName.includes("ซูเพียน") || dId === "USR005" || dId === "USR-000005" || dId === "69005") tramCode = "EV-03";
-                else if (dName.includes("อุสมาน") || dId === "USR006" || dId === "USR-000006" || dId === "69006") tramCode = "EV-04";
-                else if (dName.includes("บัดรี") || dId === "USR007" || dId === "USR-000007" || dId === "69007") tramCode = "EV-05";
-                else if (dName.includes("ตอริก") || dName.includes("ตอรริก") || dName.includes("ตอร์ริก") || dId === "USR008" || dId === "USR-000008" || dId === "69008") tramCode = "EV-06";
-                else if (dName.includes("สมหวัง") || dId === "USR009" || dId === "USR-000009" || dId === "69009") tramCode = "EV-07";
-                else if (dName.includes("สมใจ") || dId === "USR010" || dId === "USR-000010" || dId === "69010") tramCode = "EV-08";
-                else if (dName.includes("กิตติ") || dId === "USR011" || dId === "USR-000011" || dId === "69011") tramCode = "EV-09";
-                else if (dName.includes("รุสลัน") || dId === "USR012" || dId === "USR-000012" || dId === "69012") tramCode = "EV-10";
-            }
-
-            const roleName = tramCode ? `พนักงานขับรถ ${tramCode}` : "พนักงานขับรถ";
+        OFFICIAL_10_DRIVERS.forEach(driver => {
+            const cleanName = driver.name.trim();
             const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=ec4899&color=fff&size=128`;
-            
-            driverDetails[driver.user_id] = {
-                name: driver.name,
-                role: roleName,
+            const driverInfo = {
+                id: driver.user_id,
+                emp_id: driver.id,
+                name: cleanName,
+                car_id: driver.car_id,
+                plate: driver.plate,
+                role: driver.role,
                 avatar: avatarUrl
             };
-            
+
+            // Register across all possible keys
+            driverDetails[driver.user_id] = driverInfo;
+            driverDetails[driver.id] = driverInfo;
+            driverDetails[driver.car_id] = driverInfo;
+            driverDetails[cleanName] = driverInfo;
+            driverDetails[cleanName.split(' ')[0]] = driverInfo;
+
             if (selectEl) {
-                const optText = tramCode ? `${driver.name} — คนขับ ${tramCode}` : driver.name;
+                const optText = `${cleanName} — ${driver.role}`;
                 const option = new Option(optText, driver.user_id);
                 selectEl.add(option);
             }
         });
-    }
+    };
 
     // สร้างข้อมูลเริ่มต้น
     buildSurveyDriverOptions();
@@ -3340,92 +3475,58 @@
         
         let targetId = driverId;
 
-        // ถ้าส่งเข้ามาเป็น tramId เช่น 'EV-01', 'EV-02'
-        if (targetId && typeof targetId === 'string' && targetId.startsWith('EV-')) {
-            const foundKey = Object.keys(driverDetails).find(k => {
-                const d = driverDetails[k];
-                return d && d.role && d.role.includes(targetId);
-            });
-            if (foundKey) targetId = foundKey;
-            else if (targetId === 'EV-01') targetId = 'USR003';
-            else if (targetId === 'EV-02') targetId = 'USR004';
+        // If not specified or null, fallback to the first driver (USR003: นายอัสมี มูเล็ง)
+        if (!targetId || targetId === 'null' || targetId === 'undefined') {
+            targetId = OFFICIAL_10_DRIVERS[0].user_id;
         }
 
-        // ค้นหา key ใน driverDetails ให้ตรงกับ user_id หรือชื่อคนขับ
-        if (targetId && !driverDetails[targetId]) {
+        let d = driverDetails[targetId];
+        if (!d) {
+            // Find by matching name, car_id, or prefix
+            const targetStr = String(targetId).trim();
             const foundKey = Object.keys(driverDetails).find(k => {
-                if (k === targetId) return true;
-                const d = driverDetails[k];
-                if (!d) return false;
-                if ((targetId === 'USR003' || targetId.includes('อัสมี') || targetId === 'EV-01') && ((d.role && d.role.includes('EV-01')) || (d.name && d.name.includes('อัสมี')))) return true;
-                if ((targetId === 'USR004' || targetId.includes('อัรฟาน') || targetId === 'EV-02') && ((d.role && d.role.includes('EV-02')) || (d.name && d.name.includes('อัรฟาน')))) return true;
+                if (k.includes(targetStr) || targetStr.includes(k)) return true;
+                const item = driverDetails[k];
+                if (item && (item.car_id === targetStr || item.name.includes(targetStr) || item.id === targetStr || item.emp_id === targetStr)) return true;
                 return false;
             });
-            if (foundKey) targetId = foundKey;
+            if (foundKey) d = driverDetails[foundKey];
+            else d = OFFICIAL_10_DRIVERS[0];
         }
 
-        if (targetId && driverDetails[targetId]) {
-            avatarImg.src = driverDetails[targetId].avatar;
-            nameEl.innerText = driverDetails[targetId].name;
-            roleEl.innerText = driverDetails[targetId].role;
-            if (selectEl) selectEl.value = targetId;
-        } else {
-            avatarImg.src = 'https://ui-avatars.com/api/?name=Driver&background=cbd5e1&color=fff&size=128';
-            nameEl.innerText = 'กรุณาเลือกคนขับ';
-            roleEl.innerText = 'ไม่ได้เลือกพนักงานขับรถ';
-            if (selectEl) selectEl.value = '';
+        if (d) {
+            if (avatarImg) avatarImg.src = d.avatar;
+            if (nameEl) nameEl.innerText = d.name;
+            if (roleEl) roleEl.innerHTML = `<i class="fas fa-shuttle-van mr-1"></i>${d.role}`;
+            if (selectEl) selectEl.value = d.id;
         }
     };
 
     window.openSurveyModal = function(driverIdOrTramId = null) {
-        // อัพเดทรายชื่อคนขับใหม่ทุกครั้งที่เปิด modal เพื่อให้ตรงกับรถในปัจจุบัน
+        // อัพเดทรายชื่อคนขับใหม่ทุกครั้งที่เปิด modal
         buildSurveyDriverOptions();
 
         let targetDriverId = driverIdOrTramId;
 
         // 1. ถ้าส่งเป็น tramId มา เช่น 'EV-01', 'EV-02'
         if (typeof driverIdOrTramId === 'string' && driverIdOrTramId.startsWith('EV-')) {
-            const foundTram = trams.find(t => t.id === driverIdOrTramId);
-            if (foundTram) {
-                targetDriverId = foundTram.driver_id;
-                if (!targetDriverId && foundTram.driver) {
-                    const matchedUser = users.find(u => u.name && u.name.trim() === foundTram.driver.trim());
-                    if (matchedUser) targetDriverId = matchedUser.user_id;
-                }
-            }
-            if (!targetDriverId || !driverDetails[targetDriverId]) {
-                if (driverIdOrTramId === 'EV-01') targetDriverId = 'USR003';
-                else if (driverIdOrTramId === 'EV-02') targetDriverId = 'USR004';
-                else if (driverIdOrTramId === 'EV-03') targetDriverId = 'USR005';
-                else if (driverIdOrTramId === 'EV-04') targetDriverId = 'USR006';
-                else if (driverIdOrTramId === 'EV-05') targetDriverId = 'USR007';
-                else if (driverIdOrTramId === 'EV-06') targetDriverId = 'USR008';
-                else if (driverIdOrTramId === 'EV-07') targetDriverId = 'USR009';
-                else if (driverIdOrTramId === 'EV-08') targetDriverId = 'USR010';
-                else if (driverIdOrTramId === 'EV-09') targetDriverId = 'USR011';
-                else if (driverIdOrTramId === 'EV-10') targetDriverId = 'USR012';
-            }
+            const found = OFFICIAL_10_DRIVERS.find(d => d.car_id === driverIdOrTramId);
+            if (found) targetDriverId = found.user_id;
         } 
         // 2. ถ้าส่งค่าที่เป็น driverId หรือชื่อคนขับมา
         else if (driverIdOrTramId && driverIdOrTramId !== 'undefined' && driverIdOrTramId !== 'null') {
-            if (driverDetails[driverIdOrTramId]) {
-                targetDriverId = driverIdOrTramId;
-            } else {
-                const uMatch = users.find(u => u.user_id === driverIdOrTramId || (u.name && u.name.includes(driverIdOrTramId)));
-                if (uMatch && driverDetails[uMatch.user_id]) targetDriverId = uMatch.user_id;
-            }
-        } else {
-            targetDriverId = null;
+            const found = OFFICIAL_10_DRIVERS.find(d => 
+                d.user_id === driverIdOrTramId || 
+                d.id === driverIdOrTramId || 
+                d.name.includes(driverIdOrTramId) || 
+                driverIdOrTramId.includes(d.name.split(' ')[0])
+            );
+            if (found) targetDriverId = found.user_id;
         }
 
-        // 3. Fallback มั่นใจ 100% สำหรับ EV-01 และ EV-02
-        if (driverIdOrTramId === 'EV-01' || targetDriverId === 'USR003' || (typeof driverIdOrTramId === 'string' && driverIdOrTramId.includes('อัสมี'))) {
-            const asmeeKey = Object.keys(driverDetails).find(k => k === 'USR003' || (driverDetails[k] && driverDetails[k].name && driverDetails[k].name.includes('อัสมี')));
-            if (asmeeKey) targetDriverId = asmeeKey;
-        }
-        if (driverIdOrTramId === 'EV-02' || targetDriverId === 'USR004' || (typeof driverIdOrTramId === 'string' && driverIdOrTramId.includes('อัรฟาน'))) {
-            const arfanKey = Object.keys(driverDetails).find(k => k === 'USR004' || (driverDetails[k] && driverDetails[k].name && driverDetails[k].name.includes('อัรฟาน')));
-            if (arfanKey) targetDriverId = arfanKey;
+        // 3. ถ้าไม่มีการระบุ ให้เลือกคนขับคันแรกเริ่มต้นทันที (นายอัสมี มูเล็ง — EV-01)
+        if (!targetDriverId) {
+            targetDriverId = OFFICIAL_10_DRIVERS[0].user_id;
         }
 
         document.getElementById('surveyModal').classList.add('active');
@@ -3438,7 +3539,7 @@
         });
         document.getElementById('surveyComment').value = '';
         
-        // Pre-select driver
+        // Pre-select driver and update card immediately
         updateSurveyDriverCard(targetDriverId);
     };
 
@@ -3515,6 +3616,51 @@
         let allSurveys = JSON.parse(localStorage.getItem('yru_surveys') || '[]');
         allSurveys.push(surveyEntry);
         localStorage.setItem('yru_surveys', JSON.stringify(allSurveys));
+        localStorage.setItem('yru_passenger_evaluations', JSON.stringify(allSurveys));
+
+        // ส่งข้อมูลบันทึกลงฐานข้อมูล Database (table: surveys) และ Server Cache ทันที
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            fetch('/api/survey/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(surveyEntry)
+            }).then(r => r.json()).then(res => {
+                console.log('✅ บันทึกคะแนนประเมินลงฐานข้อมูลสำเร็จ:', res);
+            }).catch(err => {
+                console.warn('Sync to /api/survey/submit error:', err);
+            });
+
+            fetch('/api/storage/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    payload: {
+                        yru_surveys: JSON.stringify(allSurveys),
+                        yru_passenger_evaluations: JSON.stringify(allSurveys)
+                    }
+                })
+            }).catch(() => {});
+        } catch(e) {}
+
+        // แจ้งเตือนหน้าผู้บริหาร & แอดมินแบบ Real-Time ผ่าน BroadcastChannel
+        try {
+            const bc = new BroadcastChannel('yru_trams_realtime_sync');
+            bc.postMessage({
+                type: 'SURVEY_SUBMITTED',
+                survey: surveyEntry,
+                surveys: allSurveys,
+                timestamp: Date.now()
+            });
+        } catch(e) {}
 
         // แสดงหน้าขอบคุณ แล้วปิดหน้าต่างลง
         document.getElementById('surveyFormSection').style.display = 'none';
@@ -3555,11 +3701,19 @@
 
     // ===== User Profile & Identity Helpers =====
     function getCurrentUserIdentity() {
+        @if(Auth::check())
+            return {
+                name: "{{ addslashes(Auth::user()->name ?: (Auth::user()->username ?: Auth::user()->email)) }}",
+                role: "{{ addslashes(Auth::user()->user_role ?: 'ผู้ใช้งาน') }}",
+                id: "{{ addslashes(Auth::user()->employee_id ?: Auth::user()->user_id) }}"
+            };
+        @endif
+
         let name = 'ผู้ใช้งาน';
         let role = 'นักศึกษา';
         let id = '406665014';
         try {
-            const raw = localStorage.getItem('yru_user_login') || sessionStorage.getItem('yru_user_login') || localStorage.getItem('yru_last_passenger_login');
+            const raw = sessionStorage.getItem('yru_user_login') || localStorage.getItem('yru_user_login');
             if (raw) {
                 const u = JSON.parse(raw);
                 if (u) {
@@ -3577,10 +3731,6 @@
                     else if (u.id) id = String(u.id);
                     else if (u.username) id = u.username;
                 }
-            } else if (localStorage.getItem('yru_last_passenger_name')) {
-                name = localStorage.getItem('yru_last_passenger_name');
-                if (localStorage.getItem('yru_last_passenger_role')) role = localStorage.getItem('yru_last_passenger_role');
-                if (localStorage.getItem('yru_last_passenger_id')) id = localStorage.getItem('yru_last_passenger_id');
             }
         } catch (e) {}
         return { name, role, id };
@@ -3613,8 +3763,49 @@
         }
     }
 
-    function handleUserLogout() {
+    function handleUserLogout(event) {
         try {
+            if (event && typeof event.preventDefault === 'function') event.preventDefault();
+            const activeCallId = sessionStorage.getItem('yru_my_active_call_id') || localStorage.getItem('yru_my_active_call_id');
+            const activeCallData = JSON.parse(sessionStorage.getItem('yru_my_active_call_data') || localStorage.getItem('yru_my_active_call_data') || 'null');
+            const targetCarId = activeCallData ? activeCallData.car_id : null;
+
+            try {
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/api/clear-ev-request', new Blob([JSON.stringify({ call_id: activeCallId, car_id: targetCarId })], { type: 'application/json' }));
+                }
+                fetch('/api/clear-ev-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
+                    body: JSON.stringify({ call_id: activeCallId, car_id: targetCarId }),
+                    keepalive: true
+                }).catch(() => {});
+            } catch(errBeacon) {}
+
+            try {
+                let callQueue = JSON.parse(localStorage.getItem('yru_call_queue') || '[]');
+                if (Array.isArray(callQueue)) {
+                    callQueue = callQueue.map(c => (c.id === activeCallId || c.status === 'waiting' || c.status === 'accepted') ? { ...c, status: 'cancelled' } : c);
+                    localStorage.setItem('yru_call_queue', JSON.stringify(callQueue));
+                }
+            } catch(errQueue) {}
+
+            sessionStorage.removeItem('yru_my_active_call_id');
+            sessionStorage.removeItem('yru_my_active_call_data');
+            sessionStorage.removeItem('yru_active_call');
+            sessionStorage.removeItem('yru_passenger_call');
+            sessionStorage.removeItem('yru_current_ride');
+
+            localStorage.removeItem('yru_my_active_call_id');
+            localStorage.removeItem('yru_my_active_call_data');
+            localStorage.removeItem('yru_latest_call');
+            localStorage.removeItem('yru_passenger_call');
+            localStorage.removeItem('yru_current_ride');
+            for (let i = 1; i <= 10; i++) {
+                localStorage.removeItem('yru_latest_call_EV-' + String(i).padStart(2, '0'));
+            }
+
             sessionStorage.removeItem('yru_user_login');
             sessionStorage.removeItem('yru_current_user');
             localStorage.removeItem('yru_user_login');
@@ -3624,6 +3815,7 @@
             localStorage.removeItem('yru_last_passenger_role');
             localStorage.removeItem('yru_last_passenger_id');
         } catch(e) {}
+        window.location.href = "{{ url('/logout') }}";
     }
 
     // Call syncNavUserProfile immediately and on DOM load
@@ -3670,9 +3862,11 @@
         if (!e.key || e.key.startsWith('yru_trams') || e.key.startsWith('yru_stops') || e.key.includes('status')) {
             syncRealtimeData();
         }
-        if (e.key === 'yru_user_login' || e.key === 'yru_last_passenger_name') {
+        @if(!Auth::check())
+        if (e.key === 'yru_user_login') {
             syncNavUserProfile();
         }
+        @endif
     });
 
     try {

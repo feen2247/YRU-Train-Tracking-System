@@ -10,13 +10,6 @@
         <div class="w-full xl:w-auto">
             <div class="flex items-center gap-2.5">
                 <h2 class="text-xl md:text-2xl font-black text-slate-800 tracking-tight">รายงานสถิติภาพรวม</h2>
-                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-2xs shrink-0">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    Live Sync
-                </span>
             </div>
             <p class="text-xs md:text-sm text-slate-500 mt-1 font-medium">ภาพรวมการให้บริการ รถไฟฟ้า สถานะการเดินรถ และการวิเคราะห์สถิติผู้โดยสารเชิงลึก</p>
             <p class="text-xs md:text-sm text-pink-600 font-bold mt-1.5 flex items-center gap-1.5"><i class="fas fa-calendar-alt text-xs"></i> <span>ณ วันที่ {{ $currentThaiFormattedDate }}</span></p>
@@ -123,98 +116,112 @@
     <!-- ═══════════════════════════════════════════════════════════════════════════ -->
     <!-- 2. ENTERPRISE KPI METRIC CARDS GRID (6 CARDS)                              -->
     <!-- ═══════════════════════════════════════════════════════════════════════════ -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5 md:gap-4 font-kanit">
         <!-- KPI 1: จำนวนรอบการเดินรถทั้งหมด -->
-        <div class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition group">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-bold">รอบเดินรถทั้งหมด</p>
-                <div class="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition">
-                    <i class="fas fa-route text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <h3 id="dash-total-users" class="text-2xl font-black text-slate-800 tracking-tight">82 รอบ</h3>
-                <p class="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
-                    <i class="fas fa-arrow-up text-[10px]"></i> +12% จากเมื่อวาน
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200/80 hover:border-pink-400 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+            <div class="h-1 -mt-4 -mx-4 sm:-mt-5 sm:-mx-5 mb-3 bg-gradient-to-r from-pink-500 to-rose-500"></div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5 truncate">
+                    <i class="fas fa-route text-pink-500"></i> รอบเดินรถรวม
                 </p>
+            </div>
+            <div class="my-1">
+                <h3 id="dash-total-users" class="text-2xl font-black text-slate-800 tracking-tight leading-tight">82 รอบ</h3>
+            </div>
+            <div class="mt-2">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg group-hover:bg-emerald-100 transition-colors">
+                    <i class="fas fa-arrow-up text-[9px]"></i> +12% เมื่อวาน
+                </span>
             </div>
         </div>
 
         <!-- KPI 2: รถไฟฟ้าพร้อมใช้งาน -->
-        <div onclick="showPage('tram')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition cursor-pointer group">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-bold">รถพร้อมใช้งาน</p>
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition">
-                    <i class="fas fa-bus text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <h3 id="dash-active-trams" class="text-2xl font-black text-slate-800 tracking-tight">8 คัน</h3>
-                <p id="dash-active-trams-sub" class="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
-                    <i class="fas fa-check-circle text-[10px]"></i> พร้อมให้บริการ 80%
+        <div onclick="showPage('tram')" class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200/80 hover:border-emerald-400 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden group">
+            <div class="h-1 -mt-4 -mx-4 sm:-mt-5 sm:-mx-5 mb-3 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5 truncate">
+                    <i class="fas fa-bus text-emerald-500"></i> รถพร้อมใช้งาน
                 </p>
+            </div>
+            <div class="my-1">
+                <h3 id="dash-active-trams" class="text-2xl font-black text-slate-800 tracking-tight leading-tight">9 คัน</h3>
+            </div>
+            <div class="mt-2">
+                <span id="dash-active-trams-sub" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg group-hover:bg-emerald-100 transition-colors">
+                    <i class="fas fa-check-circle text-[9px]"></i> พร้อมใช้ 90%
+                </span>
             </div>
         </div>
 
         <!-- KPI 3: จุดจอดรถไฟฟ้าทั้งหมด -->
-        <div onclick="showPage('route')" class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition cursor-pointer group">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-bold">จุดจอดทั้งหมด</p>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition">
-                    <i class="fas fa-map-marker-alt text-sm"></i>
-                </div>
+        <div onclick="showPage('route')" class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200/80 hover:border-sky-400 hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden group">
+            <div class="h-1 -mt-4 -mx-4 sm:-mt-5 sm:-mx-5 mb-3 bg-gradient-to-r from-sky-500 to-blue-500"></div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5 truncate">
+                    <i class="fas fa-map-marker-alt text-sky-500"></i> จุดจอดทั้งหมด
+                </p>
             </div>
-            <div class="mt-3">
-                <h3 id="dash-total-stations" class="text-2xl font-black text-slate-800 tracking-tight">7 จุด</h3>
-                <p class="text-[11px] text-slate-400 font-semibold mt-1">ครอบคลุมทั้งมหาวิทยาลัย</p>
+            <div class="my-1">
+                <h3 id="dash-total-stations" class="text-2xl font-black text-slate-800 tracking-tight leading-tight">9 จุด</h3>
+            </div>
+            <div class="mt-2">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg group-hover:bg-sky-100 transition-colors">
+                    ครอบคลุม มรย.
+                </span>
             </div>
         </div>
 
         <!-- KPI 4: อัตราการใช้งานรถไฟฟ้า (Fleet Utilization Rate %) -->
-        <div class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition group">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-bold">อัตราการใช้งานรถ</p>
-                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
-                    <i class="fas fa-tachometer-alt text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <h3 id="dash-utilization-rate" class="text-2xl font-black text-slate-800 tracking-tight">88.5%</h3>
-                <p class="text-[11px] text-blue-600 font-bold mt-1 flex items-center gap-1">
-                    <i class="fas fa-chart-line text-[10px]"></i> ประสิทธิภาพสูง
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200/80 hover:border-blue-400 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+            <div class="h-1 -mt-4 -mx-4 sm:-mt-5 sm:-mx-5 mb-3 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5 truncate">
+                    <i class="fas fa-tachometer-alt text-blue-500"></i> อัตราการใช้รถ
                 </p>
+            </div>
+            <div class="my-1">
+                <h3 id="dash-utilization-rate" class="text-2xl font-black text-slate-800 tracking-tight leading-tight">88.5%</h3>
+            </div>
+            <div class="mt-2">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg group-hover:bg-blue-100 transition-colors">
+                    ประสิทธิภาพสูง
+                </span>
             </div>
         </div>
 
         <!-- KPI 5: จำนวนผู้โดยสารรวม (Total Passengers) -->
-        <div class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition group">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-bold">ผู้โดยสารรวมสะสม</p>
-                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition">
-                    <i class="fas fa-users text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <h3 id="dash-total-passengers" class="text-2xl font-black text-slate-800 tracking-tight">131 คน</h3>
-                <p class="text-[11px] text-purple-600 font-bold mt-1 flex items-center gap-1">
-                    <i class="fas fa-user-plus text-[10px]"></i> <span id="dash-avg-passengers">เฉลี่ย 44 คน/วัน</span>
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200/80 hover:border-purple-400 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+            <div class="h-1 -mt-4 -mx-4 sm:-mt-5 sm:-mx-5 mb-3 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5 truncate">
+                    <i class="fas fa-users text-purple-500"></i> ผู้โดยสารสะสม
                 </p>
+            </div>
+            <div class="my-1">
+                <h3 id="dash-total-passengers" class="text-2xl font-black text-slate-800 tracking-tight leading-tight">141 คน</h3>
+            </div>
+            <div class="mt-2">
+                <span id="dash-avg-passengers" class="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg group-hover:bg-purple-100 transition-colors">
+                    เฉลี่ย 47 คน/วัน
+                </span>
             </div>
         </div>
 
         <!-- KPI 6: อัตราความตรงต่อเวลา (On-Time Performance %) -->
-        <div class="bg-white p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition group">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-bold">ความตรงต่อเวลา</p>
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition">
-                    <i class="fas fa-clock text-sm"></i>
-                </div>
-            </div>
-            <div class="mt-3">
-                <h3 id="dash-ontime-rate" class="text-2xl font-black text-slate-800 tracking-tight">96.2%</h3>
-                <p class="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
-                    <i class="fas fa-check-double text-[10px]"></i> อยู่ในเกณฑ์ดีเยี่ยม
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200/80 hover:border-amber-400 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+            <div class="h-1 -mt-4 -mx-4 sm:-mt-5 sm:-mx-5 mb-3 bg-gradient-to-r from-amber-400 to-yellow-500"></div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5 truncate">
+                    <i class="fas fa-clock text-amber-500"></i> ตรงต่อเวลา
                 </p>
+            </div>
+            <div class="my-1">
+                <h3 id="dash-ontime-rate" class="text-2xl font-black text-slate-800 tracking-tight leading-tight">96.2%</h3>
+            </div>
+            <div class="mt-2">
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg group-hover:bg-amber-100 transition-colors">
+                    เกณฑ์ดีเยี่ยม
+                </span>
             </div>
         </div>
     </div>
@@ -233,9 +240,6 @@
                         </h3>
                         <p class="text-xs text-slate-500 mt-0.5">จำแนกตามความหนาแน่นของผู้โดยสารในแต่ละชั่วโมง</p>
                     </div>
-                    <span class="text-[10px] bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-full border border-amber-200 shadow-2xs">
-                        ⚡ Demand Analytics
-                    </span>
                 </div>
                 <div class="h-60 relative">
                     <canvas id="peakHoursChart"></canvas>
@@ -260,9 +264,6 @@
                         </h3>
                         <p class="text-xs text-slate-500 mt-0.5">สถิติจุดรับ-ส่งที่ได้รับการเรียกรถและเข้าใช้บริการมากที่สุด</p>
                     </div>
-                    <span class="text-[10px] bg-pink-50 text-pink-700 font-bold px-2.5 py-1 rounded-full border border-pink-200 shadow-2xs">
-                        📍 Station Popularity
-                    </span>
                 </div>
                 <div class="h-60 relative">
                     <canvas id="topStationsChart"></canvas>

@@ -22,7 +22,24 @@ class CheckRole
             return redirect()->route('login');
         }
 
-        $userRole = auth()->user()->user_role;
+        $user = auth()->user();
+        $statusLower = strtolower(trim($user->status ?? ''));
+        $rightsLower = strtolower(trim($user->usage_rights ?? ''));
+        $isSuspended = in_array($statusLower, ['ระงับการใช้งาน', 'ระงับ', 'suspended', 'inactive', 'banned', 'blocked', 'disabled'])
+                    || in_array($rightsLower, ['ระงับการใช้งาน', 'ระงับ', 'suspended', 'inactive', 'banned', 'blocked', 'disabled'])
+                    || str_contains($statusLower, 'ระงับ')
+                    || str_contains($rightsLower, 'ระงับ')
+                    || str_contains($statusLower, 'suspend')
+                    || str_contains($rightsLower, 'suspend');
+
+        if ($isSuspended) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login');
+        }
+
+        $userRole = $user->user_role;
 
         if (in_array($userRole, $roles)) {
             return $next($request);

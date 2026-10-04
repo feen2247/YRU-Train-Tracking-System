@@ -17,6 +17,17 @@ class ExecutiveController extends Controller
             return redirect('/');
         }
 
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $role = strtolower(trim($user->user_role ?? ''));
+        $isExecutive = in_array($role, ['executive', 'ผู้บริหาร', 'admin', 'administrator', 'ผู้ดูแลระบบ', 'director']) 
+            || str_contains($role, 'executive') 
+            || str_contains($role, 'ผู้บริหาร') 
+            || str_contains($role, 'admin');
+
+        if (!$isExecutive) {
+            return redirect('/home');
+        }
+
         $recentActivities = [];
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('travel_histories')) {
@@ -29,7 +40,36 @@ class ExecutiveController extends Controller
             $recentActivities = [];
         }
 
-        return view('passenger.executive.index', compact('recentActivities'));
+        $maintenanceRequests = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('maintenance_requests')) {
+                $maintenanceRequests = \App\Models\MaintenanceRequest::latest()->get();
+            }
+        } catch (\Exception $e) {
+            $maintenanceRequests = [];
+        }
+
+        $drivers = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+                $drivers = \App\Models\User::where('user_role', 'like', '%driver%')
+                    ->orWhere('user_role', 'like', '%ขับรถ%')
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            $drivers = [];
+        }
+
+        $electricTrains = [];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('electric_trains')) {
+                $electricTrains = \App\Models\ElectricTrain::all();
+            }
+        } catch (\Exception $e) {
+            $electricTrains = [];
+        }
+
+        return view('passenger.executive.index', compact('recentActivities', 'maintenanceRequests', 'drivers', 'electricTrains'));
     }
 
     /**

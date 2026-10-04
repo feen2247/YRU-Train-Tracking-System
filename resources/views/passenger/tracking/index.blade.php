@@ -816,15 +816,17 @@
     };
     uniLabel.addTo(map);
 
-    // ===== Default Station Data (7 Bus Stops matching Home View) =====
+    // ===== Default Station Data (9 Bus Stops matching Home View) =====
     const defaultStationData = [
-        { id: 1, name: "จุดจอด 1 ประตูหลังมอ.", lat: 6.549929, lng: 101.291254, type: "P", status: "จอดอยู่", time: "Now", car: "EV-08", color: "#6366F1", border: "#C7D2FE" },
-        { id: 2, name: "จุดจอด 2 ตึกศิลปะ ", lat: 6.549100, lng: 101.290467, type: "P", status: "รอถัดไป", time: "5 นาที", car: "EV-02", color: "#EC4899", border: "#F9A8D4" },
-        { id: 3, name: "จุดจอด 3 ศูนย์วิทยาศาสตร์ ", lat: 6.547835, lng: 101.289502, type: "P", status: "ถัดไป", time: "10 นาที", car: "EV-09", color: "#06B6D4", border: "#67E8F9" },
-        { id: 4, name: "จุดจอด 4 คณะวิทยาศาสตร์", lat: 6.547224, lng: 101.289471, type: "P", status: "ถัดไป", time: "15 นาที", car: "EV-04", color: "#8B5CF6", border: "#C4B5FD" },
-        { id: 5, name: "จุดจอด 5 สังคมศาสตร์", lat: 6.547311, lng: 101.288880, type: "P", status: "จอดอยู่", time: "Now", car: "EV-10", color: "#F43F5E", border: "#FDA4AF" },
-        { id: 6, name: "จุดจอด 6 อาคารเรียน20 ", lat: 6.548822, lng: 101.288523, type: "P", status: "รอถัดไป", time: "5 นาที", car: "EV-06", color: "#EF4444", border: "#FCA5A5" },
-        { id: 7, name: "จุดจอด 7 คณะวิทยาการจัดการ ", lat: 6.549225, lng: 101.289286, type: "P", status: "ถัดไป", time: "10 นาที", car: "EV-07", color: "#10B981", border: "#A7F3D0" }
+        { id: 1, name: "จุดจอด 1 หน้าอาคารที่พักบุคลากร", lat: 6.549929, lng: 101.291254, type: "P", status: "จอดอยู่", time: "Now", car: "EV-08", color: "#6366F1", border: "#C7D2FE" },
+        { id: 2, name: "จุดจอด 2 หน้าตึกศิลปะ", lat: 6.549100, lng: 101.290467, type: "P", status: "รอถัดไป", time: "5 นาที", car: "EV-02", color: "#EC4899", border: "#F9A8D4" },
+        { id: 3, name: "จุดจอด 3 หน้าอาคารศูนย์วิทยาศาสตร์", lat: 6.547835, lng: 101.289502, type: "P", status: "ถัดไป", time: "10 นาที", car: "EV-09", color: "#06B6D4", border: "#67E8F9" },
+        { id: 4, name: "จุดจอด 4 หน้าอาคารคณะวิทยาศาสตร์", lat: 6.547224, lng: 101.289471, type: "P", status: "ถัดไป", time: "15 นาที", car: "EV-04", color: "#8B5CF6", border: "#C4B5FD" },
+        { id: 5, name: "จุดจอด 5 หน้าอาคารคณะสังคมศาสตร์", lat: 6.547311, lng: 101.288880, type: "P", status: "จอดอยู่", time: "Now", car: "EV-10", color: "#F43F5E", border: "#FDA4AF" },
+        { id: 6, name: "จุดจอด 6 หน้าร้าน Old School", lat: 6.547687, lng: 101.288335, type: "P", status: "รอถัดไป", time: "5 นาที", car: "EV-05", color: "#EF4444", border: "#FCA5A5" },
+        { id: 7, name: "จุดจอด 7 หน้าอาคาร20", lat: 6.548822, lng: 101.288523, type: "P", status: "ถัดไป", time: "10 นาที", car: "EV-06", color: "#06B6D4", border: "#67E8F9" },
+        { id: 8, name: "จุดจอด 8 หน้าอาคารคณะวิทยาการจัดการ", lat: 6.549225, lng: 101.289286, type: "P", status: "ถัดไป", time: "15 นาที", car: "EV-07", color: "#6366F1", border: "#C7D2FE" },
+        { id: 9, name: "จุดจอด 9 หน้าโรงอาหาร", lat: 6.550323, lng: 101.290024, type: "P", status: "ถัดไป", time: "20 นาที", car: "EV-03", color: "#14B8A6", border: "#99F6E4" }
     ];
 
     let stationData = defaultStationData;
@@ -847,7 +849,7 @@
 
     function loadDynamicStationData() {
         const localStops = JSON.parse(localStorage.getItem("yru_stops_v2") || "[]");
-        if (localStops.length === 0) {
+        if (localStops.length === 0 || localStops.length < 9) {
             stationData = defaultStationData;
             return;
         }
@@ -887,7 +889,9 @@
         4: { border: '#10B981', fill: '#34D399', badge: '#059669' }, // Emerald
         5: { border: '#F59E0B', fill: '#FBBF24', badge: '#D97706' }, // Amber
         6: { border: '#EF4444', fill: '#F87171', badge: '#DC2626' }, // Red
-        7: { border: '#06B6D4', fill: '#22D3EE', badge: '#0891B2' }  // Cyan
+        7: { border: '#06B6D4', fill: '#22D3EE', badge: '#0891B2' }, // Cyan
+        8: { border: '#6366F1', fill: '#818CF8', badge: '#4F46E5' }, // Indigo
+        9: { border: '#14B8A6', fill: '#2DD4BF', badge: '#0D9488' }  // Teal
     };
 
     function drawStationMarkers() {
@@ -948,7 +952,7 @@
     drawStationMarkers();
     try { if (typeof initTramMarkers === 'function') initTramMarkers(); } catch(e) {}
 
-    // Fallback static polyline route loop connecting all 7 stations along road network
+    // Fallback static polyline route loop connecting all 9 stations along road network
     const fallbackRouteCoords = [
         [6.549929, 101.291254], // จุดจอด 1 (ประตูหลังมอ)
         [6.549880, 101.291000],
@@ -957,10 +961,11 @@
         [6.547224, 101.289471], // จุดจอด 4 (คณะวิทยาศาสตร์)
         [6.547050, 101.289200],
         [6.547311, 101.288880], // จุดจอด 5 (สังคมศาสตร์)
-        [6.547600, 101.288500],
-        [6.548822, 101.288523], // จุดจอด 6 (อาคารเรียน 20)
-        [6.549225, 101.289286], // จุดจอด 7 (คณะวิทยาการจัดการ)
+        [6.547687, 101.288335], // จุดจอด 6 (หน้าร้าน Old School)
+        [6.548822, 101.288523], // จุดจอด 7 (อาคารเรียน 20)
+        [6.549225, 101.289286], // จุดจอด 8 (คณะวิทยาการจัดการ)
         [6.550100, 101.289800],
+        [6.550323, 101.290024], // จุดจอด 9 (หน้าโรงอาหาร)
         [6.550350, 101.290500],
         [6.550150, 101.291200],
         [6.549929, 101.291254]  // Loop back to จุดจอด 1
@@ -1305,7 +1310,10 @@
                     ${pingHtml}
                     <div class="relative w-10 h-10 rounded-full flex items-center justify-center border-[3px] ${isCurrentCar ? 'border-pink-500 ring-4 ring-pink-400/50 scale-110 shadow-2xl z-50' : 'border-white shadow-xl'}"
                          style="background: ${bgColor};">
-                        <span class="text-sm font-black" style="color: ${textColor}; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${number}</span>
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-bus text-[10px]" style="color: ${textColor};"></i>
+                            <span class="text-sm font-black" style="color: ${textColor}; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${number}</span>
+                        </div>
                         ${statusIcon}
                     </div>
                     <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 ${isCurrentCar ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white font-extrabold shadow-lg border border-pink-200' : 'bg-white/95 backdrop-blur-sm font-bold text-slate-700 border border-slate-200'} text-[9.5px] px-2.5 py-0.5 rounded-full shadow whitespace-nowrap">
@@ -1854,14 +1862,29 @@
             }
         }
 
-        if (typeof globalCarStatus !== 'undefined' && typeof currentCarCode !== 'undefined') {
-            const carInfo = globalCarStatus[currentCarCode] || {};
+        const activeCarCode = typeof currentCarCode !== 'undefined' ? currentCarCode : (typeof currentCarId !== 'undefined' ? currentCarId : 'EV-01');
+
+        if (typeof globalCarStatus !== 'undefined') {
+            const carInfo = globalCarStatus[activeCarCode] || {};
             carInfo.occupied = currentOccupied;
-            globalCarStatus[currentCarCode] = carInfo;
-            try { localStorage.setItem('yru_car_status_' + currentCarCode, JSON.stringify(carInfo)); } catch(e) {}
+            carInfo.capacity = maxCapacity;
+            globalCarStatus[activeCarCode] = carInfo;
+            try { 
+                localStorage.setItem('yru_car_status_' + activeCarCode, JSON.stringify(carInfo)); 
+                localStorage.setItem('yru_seats_' + activeCarCode, currentOccupied.toString());
+            } catch(e) {}
         }
-        // ลบ Throttle storage dispatch เพื่อป้องกัน infinite loop
-        // Native localStorage item modification already dispatches to other tabs natively.
+
+        // แจ้งเตือน BroadcastChannel ให้ทุกหน้าจอ (รวมหน้าผู้โดยสาร /home) อัปเดตทันทีแบบ Real-time
+        try {
+            const bc = new BroadcastChannel('yru_car_status_channel');
+            bc.postMessage({ 
+                type: 'seats_updated', 
+                car_id: activeCarCode, 
+                occupied: currentOccupied,
+                capacity: maxCapacity 
+            });
+        } catch(e) {}
 
         if (lastSentOccupied !== currentOccupied) {
             lastSentOccupied = currentOccupied;
@@ -1871,7 +1894,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ car_id: currentCarId, occupied: currentOccupied })
+                body: JSON.stringify({ car_id: activeCarCode, occupied: currentOccupied, capacity: maxCapacity })
             })
             .then(res => res.json())
             .then(data => console.log('Seats updated real-time:', data))

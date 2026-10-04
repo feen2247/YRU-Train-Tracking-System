@@ -2,13 +2,12 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Charm:wght@400;700&display=swap');
 @media print {
-    /* Hide all elements on the body */
-    body > *:not(#yruPrintableFormModal) {
+    /* Only activate official form print layout when explicitly printing the official form */
+    body.print-official-form-active > *:not(#yruPrintableFormModal) {
         display: none !important;
     }
     
-    /* Make the modal container take full page and visible */
-    #yruPrintableFormModal {
+    body.print-official-form-active #yruPrintableFormModal {
         display: block !important;
         position: absolute !important;
         left: 0 !important;
@@ -22,8 +21,7 @@
         overflow: visible !important;
     }
     
-    /* Remove modal container styled borders, shadows and scroll */
-    #yruPrintableFormModal > div {
+    body.print-official-form-active #yruPrintableFormModal > div {
         border: none !important;
         box-shadow: none !important;
         max-width: 100% !important;
@@ -37,21 +35,18 @@
         display: block !important;
     }
     
-    /* Hide the top action bar (print and close buttons) */
-    #yruPrintableFormModal > div > div:first-child {
+    body.print-official-form-active #yruPrintableFormModal > div > div:first-child {
         display: none !important;
     }
     
-    /* Reset the document body padding and background */
-    #yruPrintableFormModal > div > div:last-child {
+    body.print-official-form-active #yruPrintableFormModal > div > div:last-child {
         padding: 0 !important;
         margin: 0 !important;
         background: white !important;
         overflow: visible !important;
     }
     
-    /* Reset A4 layout borders, padding and shadows for print */
-    #officialPrintDocument {
+    body.print-official-form-active #officialPrintDocument {
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
@@ -60,9 +55,13 @@
         width: 100% !important;
     }
     
-    @page {
-        size: A4 portrait;
-        margin: 8mm 12mm 8mm 12mm;
+    body.print-official-form-active {
+        background: white !important;
+    }
+
+    /* When NOT printing the official form, hide the form modal completely */
+    body:not(.print-official-form-active) #yruPrintableFormModal {
+        display: none !important;
     }
 }
 </style>
@@ -484,6 +483,7 @@ function closePrintableFormModal() {
 }
 
 function printOfficialForm() {
+    document.body.classList.add('print-official-form-active');
     const images = document.querySelectorAll('#officialPrintDocument img');
     const promises = Array.from(images).map(img => {
         if (img.complete) return Promise.resolve();
@@ -495,6 +495,9 @@ function printOfficialForm() {
     Promise.all(promises).then(() => {
         setTimeout(() => {
             window.print();
+            setTimeout(() => {
+                document.body.classList.remove('print-official-form-active');
+            }, 1000);
         }, 150);
     });
 }

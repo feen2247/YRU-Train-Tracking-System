@@ -58,9 +58,14 @@ function gpsNotify(icon, title, text) {
 }
 
 async function gpsRequest(url, options = {}) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const res = await fetch(url, {
         credentials: 'same-origin',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        headers: { 
+            'Accept': 'application/json', 
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
         ...options,
     });
     let body = {};

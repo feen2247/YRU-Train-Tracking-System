@@ -11,6 +11,41 @@ Route::get('/clear-all-caches', function() {
     try { \Illuminate\Support\Facades\Artisan::call('cache:clear'); $res[] = 'cache:clear'; } catch(\Throwable $e) {}
     try { \Illuminate\Support\Facades\Artisan::call('config:clear'); $res[] = 'config:clear'; } catch(\Throwable $e) {}
     try { \Illuminate\Support\Facades\Artisan::call('route:clear'); $res[] = 'route:clear'; } catch(\Throwable $e) {}
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('gps_devices')) {
+            \Illuminate\Support\Facades\Schema::create('gps_devices', function ($table) {
+                $table->id();
+                $table->string('device_id', 50)->unique();
+                $table->string('name', 100)->nullable();
+                $table->string('vehicle_id', 20)->nullable()->unique();
+                $table->decimal('latitude', 10, 7)->nullable();
+                $table->decimal('longitude', 10, 7)->nullable();
+                $table->decimal('speed_kmh', 6, 2)->nullable();
+                $table->unsignedSmallInteger('satellites')->nullable();
+                $table->decimal('hdop', 5, 2)->nullable();
+                $table->timestamp('last_seen_at')->nullable();
+                $table->timestamps();
+            });
+            $res[] = 'created:gps_devices';
+        }
+        if (!\Illuminate\Support\Facades\Schema::hasTable('surveys')) {
+            \Illuminate\Support\Facades\Schema::create('surveys', function ($table) {
+                $table->id();
+                $table->string('driver_id', 50)->nullable();
+                $table->string('driver_name', 100)->nullable();
+                $table->string('car_id', 20)->nullable();
+                $table->string('plate', 50)->nullable();
+                $table->text('ratings')->nullable();
+                $table->decimal('avg_rating', 4, 2)->nullable();
+                $table->text('comment')->nullable();
+                $table->string('user_email', 191)->nullable();
+                $table->string('survey_date', 50)->nullable();
+                $table->string('survey_time', 50)->nullable();
+                $table->timestamps();
+            });
+            $res[] = 'created:surveys';
+        }
+    } catch(\Throwable $e) {}
     if (function_exists('opcache_reset')) {
         try { opcache_reset(); $res[] = 'opcache_reset'; } catch(\Throwable $e) {}
     }
@@ -28,9 +63,14 @@ Route::get('/clear-all-caches', function() {
             'updated_at' => date('H:i:s')
         ], 28800);
     }
-    Cache::forget('global_storage_yru_trams_v18');
-    Cache::forget('global_storage_yru_trams_v16');
-    Cache::forget('global_storage_yru_trams_v15');
+    // Ensure persistent trams are preserved and reloaded into cache
+    if (file_exists(storage_path('app/yru_trams_persistent.json'))) {
+        $pTramsRaw = @file_get_contents(storage_path('app/yru_trams_persistent.json'));
+        if ($pTramsRaw) {
+            Cache::forever('global_storage_yru_trams_v18', $pTramsRaw);
+            Cache::forever('global_storage_yru_trams_v16', $pTramsRaw);
+        }
+    }
     Cache::forget('global_storage_yru_user_login');
     Cache::forget('global_storage_yru_last_passenger_login');
     Cache::forget('global_storage_yru_last_passenger_name');
@@ -45,111 +85,277 @@ Route::get('/clear-all-caches', function() {
     ]);
 });
 
-Route::get('/api/system/sync-db-users', function () {
+Route::get('/api/admin/users', function () {
     try {
-        $usersToEnsure = [
-            [
-                'user_id' => 'USR-000014',
-                'employee_id' => '69014',
-                'username' => 'hadee',
-                'prefix' => 'นาย',
-                'first_name' => 'ฮาดิ',
-                'last_name' => 'ลือแมะ',
-                'name' => 'นายฮาดิ ลือแมะ',
-                'email' => 'hadee@yru.ac.th',
-                'password' => \Illuminate\Support\Facades\Hash::make('69014'),
-                'user_role' => 'vehicle_head',
-                'usage_rights' => 'Active',
-                'status' => 'ใช้งาน',
-                'email_verified_at' => now(),
-            ],
-            [
-                'user_id' => 'USR-000018',
-                'employee_id' => '69014',
-                'username' => 'suthin',
-                'prefix' => 'นาย',
-                'first_name' => 'สุทิน',
-                'last_name' => 'มีสุข',
-                'name' => 'นายสุทิน มีสุข',
-                'email' => 'suthin.m@yru.ac.th',
-                'password' => \Illuminate\Support\Facades\Hash::make('69014'),
-                'user_role' => 'vehicle_head',
-                'usage_rights' => 'Active',
-                'status' => 'ใช้งาน',
-                'email_verified_at' => now(),
-            ],
-            [
-                'user_id' => 'USR-000013',
-                'employee_id' => '69013',
-                'username' => 'prasan',
-                'prefix' => 'นาย',
-                'first_name' => 'ประสาน',
-                'last_name' => 'งานดี',
-                'name' => 'นายประสาน งานดี',
-                'email' => 'prasan.g@yru.ac.th',
-                'password' => \Illuminate\Support\Facades\Hash::make('69013'),
-                'user_role' => 'Mechanic',
-                'usage_rights' => 'Active',
-                'status' => 'ใช้งาน',
-                'email_verified_at' => now(),
-            ]
+        // รายชื่อผู้ใช้หลัก 17 รายการที่ถูกต้อง 100%
+        $officialUsers = [
+            ['user_id'=>'USR-000001','employee_id'=>'69001','prefix'=>'นาย','first_name'=>'มูฮัมหมัด','last_name'=>'ซอและ', 'name'=>'นายมูฮัมหมัด ซอและ','username'=>'muhammad','email'=>'muhammad@yru.ac.th','phone'=>'081-234-5678','role'=>'admin','status'=>'ปกติ'],
+            ['user_id'=>'USR-000002','employee_id'=>'69002','prefix'=>'ดร.', 'first_name'=>'สมชาย',  'last_name'=>'เรียนดี', 'name'=>'ดร.สมชาย เรียนดี', 'username'=>'somchai', 'email'=>'somchai@yru.ac.th', 'phone'=>'082-345-6789','role'=>'executive','status'=>'ปกติ'],
+            ['user_id'=>'USR-000003','employee_id'=>'69003','prefix'=>'นาย','first_name'=>'อัสมี',   'last_name'=>'มูเล็ง',  'name'=>'นายอัสมี มูเล็ง',  'username'=>'asmee',   'email'=>'asmee@yru.ac.th',   'phone'=>'083-456-7890','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000004','employee_id'=>'69004','prefix'=>'นาย','first_name'=>'อัรฟาน', 'last_name'=>'มะเระ',    'name'=>'นายอัรฟาน มะเระ',  'username'=>'arfan',   'email'=>'arfan@yru.ac.th',   'phone'=>'084-567-8901','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000005','employee_id'=>'69005','prefix'=>'นาย','first_name'=>'ซูเฟียน', 'last_name'=>'มะโละ',   'name'=>'นายซูเฟียน มะโละ', 'username'=>'sufiyan', 'email'=>'sufiyan@yru.ac.th', 'phone'=>'085-678-9012','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000006','employee_id'=>'69006','prefix'=>'นาย','first_name'=>'อุสมาน', 'last_name'=>'สาและ',   'name'=>'นายอุสมาน สาและ', 'username'=>'usman',   'email'=>'usman@yru.ac.th',   'phone'=>'086-789-0123','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000007','employee_id'=>'69007','prefix'=>'นาย','first_name'=>'บัดรี',   'last_name'=>'สาและ',    'name'=>'นายบัดรี สาและ',   'username'=>'badri',   'email'=>'badri@yru.ac.th',   'phone'=>'087-890-1234','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000008','employee_id'=>'69008','prefix'=>'นาย','first_name'=>'ตอริก',  'last_name'=>'ลือแมะ',  'name'=>'นายตอริก ลือแมะ',  'username'=>'torik',   'email'=>'torik@yru.ac.th',   'phone'=>'088-901-2345','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000009','employee_id'=>'69009','prefix'=>'นาย','first_name'=>'สมหวัง', 'last_name'=>'ใจดี',    'name'=>'นายสมหวัง ใจดี',   'username'=>'somwang', 'email'=>'somwang@yru.ac.th', 'phone'=>'089-012-3456','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000010','employee_id'=>'69010','prefix'=>'นาย','first_name'=>'สมใจ',   'last_name'=>'ใจดี',    'name'=>'นายสมใจ ใจดี',    'username'=>'somjai',  'email'=>'somjai@yru.ac.th',  'phone'=>'090-123-4567','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000011','employee_id'=>'69011','prefix'=>'นาย','first_name'=>'กิตติ',   'last_name'=>'ตั้งใจ',   'name'=>'นายกิตติ ตั้งใจ',   'username'=>'kitti',   'email'=>'kitti@yru.ac.th',   'phone'=>'091-234-5678','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000012','employee_id'=>'69012','prefix'=>'นาย','first_name'=>'รุสลัน', 'last_name'=>'สอเฮาะ',  'name'=>'นายรุสลัน สอเฮาะ',  'username'=>'ruslan',  'email'=>'ruslan@yru.ac.th',  'phone'=>'092-345-6789','role'=>'driver','status'=>'ปกติ'],
+            ['user_id'=>'USR-000013','employee_id'=>'69013','prefix'=>'นาย','first_name'=>'ประสาน', 'last_name'=>'งานดี',    'name'=>'นายประสาน งานดี',  'username'=>'prasan',  'email'=>'prasan.g@yru.ac.th','phone'=>'093-456-7890','role'=>'mechanic','status'=>'ปกติ'],
+            ['user_id'=>'USR-000014','employee_id'=>'69014','prefix'=>'นาย','first_name'=>'ฮาดี',   'last_name'=>'ลือแมะ',  'name'=>'นายฮาดี ลือแมะ',   'username'=>'hadee',   'email'=>'hadee@yru.ac.th',   'phone'=>'094-567-8901','role'=>'vehicle_head','status'=>'ปกติ'],
+            ['user_id'=>'USR-000015','employee_id'=>'406665014','prefix'=>'นางสาว','first_name'=>'ทัศนีย์','last_name'=>'สาและ','name'=>'นางสาวทัศนีย์ สาและ','username'=>'406665014','email'=>'406665014@yru.ac.th','phone'=>'063-549-7741','role'=>'student','status'=>'ปกติ'],
+            ['user_id'=>'USR-000016','employee_id'=>'406665035','prefix'=>'นางสาว','first_name'=>'พิชญา', 'last_name'=>'ชุมมิคสา','name'=>'นางสาวพิชญา ชุมมิคสา','username'=>'406665035','email'=>'406665035@yru.ac.th','phone'=>'063-549-7742','role'=>'student','status'=>'ปกติ'],
+            ['user_id'=>'USR-000017','employee_id'=>'406665025','prefix'=>'นางสาว','first_name'=>'วรนุช', 'last_name'=>'อาดำ',  'name'=>'นางสาววรนุช อาดำ', 'username'=>'406665025','email'=>'406665025@yru.ac.th','phone'=>'063-549-7743','role'=>'student','status'=>'ปกติ'],
+            ['user_id'=>'USR-406665036-1','employee_id'=>'406665036','prefix'=>'','first_name'=>'ลุกมาน','last_name'=>'ดัมแม','name'=>'ลุกมาน ดัมแม','username'=>'406665036','email'=>'406665036@yru.ac.th','phone'=>'063-549-7741','role'=>'student','status'=>'ปกติ'],
+            ['user_id'=>'USR-69015','employee_id'=>'69015','prefix'=>'','first_name'=>'ฟิรดาว','last_name'=>'สาและ','name'=>'ฟิรดาว สาและ','username'=>'firdaw','email'=>'firdaw@yru.ac.th','phone'=>'-','role'=>'executive','status'=>'ปกติ'],
+            ['user_id'=>'USR-69016','employee_id'=>'69016','prefix'=>'นาย','first_name'=>'ซอฟี','last_name'=>'บูแด','name'=>'นายซอฟี บูแด','username'=>'sawfee.b','email'=>'sawfee.b@yru.ac.th','phone'=>'-','role'=>'student','status'=>'ปกติ']
         ];
 
-        foreach ($usersToEnsure as $uData) {
-            $user = \App\Models\User::where('username', $uData['username'])
-                ->orWhere('email', $uData['email'])
+        // ซิงก์ลงฐานข้อมูล users อย่างต่อเนื่องเพื่อป้องกันข้อมูลผิดเพี้ยน
+        $roleMapToDb = [
+            'admin' => 'Administrator',
+            'executive' => 'Executive',
+            'driver' => 'Driver',
+            'mechanic' => 'Mechanic',
+            'vehicle_head' => 'VehicleHead',
+            'student' => 'Student',
+        ];
+
+        foreach ($officialUsers as $u) {
+            $existing = \App\Models\User::where('username', $u['username'])
+                ->orWhere('employee_id', $u['employee_id'])
+                ->orWhere('email', $u['email'])
                 ->first();
-            if ($user) {
-                $user->employee_id = $uData['employee_id'];
-                $user->name = $uData['name'];
-                $user->user_role = $uData['user_role'];
-                $user->status = $uData['status'];
-                $user->usage_rights = $uData['usage_rights'];
-                $user->password = $uData['password'];
-                $user->email_verified_at = now();
-                $user->save();
-            } else {
-                \App\Models\User::create($uData);
-            }
-        }
 
-        $sessionTableInfo = 'Table not checked';
-        try {
-            if (!\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
-                \Illuminate\Support\Facades\Schema::create('sessions', function ($table) {
-                    $table->string('id')->primary();
-                    $table->string('user_id', 255)->nullable()->index();
-                    $table->string('ip_address', 45)->nullable();
-                    $table->text('user_agent')->nullable();
-                    $table->longText('payload');
-                    $table->integer('last_activity')->index();
-                });
-                $sessionTableInfo = 'Created sessions table with string user_id';
-            } else {
-                // Check user_id type and alter if needed
-                try {
-                    \Illuminate\Support\Facades\DB::statement("ALTER TABLE `sessions` MODIFY `user_id` VARCHAR(255) NULL");
-                    $sessionTableInfo = 'Altered sessions.user_id to VARCHAR(255)';
-                } catch (\Throwable $exAlter) {
-                    $sessionTableInfo = 'Alter notice: ' . $exAlter->getMessage();
+            $dbRole = $roleMapToDb[$u['role']] ?? 'Driver';
+            if ($existing) {
+                $existing->employee_id = $u['employee_id'];
+                $existing->prefix = $u['prefix'];
+                $existing->first_name = $u['first_name'];
+                $existing->last_name = $u['last_name'];
+                $existing->name = $u['name'];
+                $existing->email = $u['email'];
+                if (empty($existing->user_role)) {
+                    $existing->user_role = $dbRole;
                 }
+                // Preserve suspension status if admin suspended this user
+                $isCurrentlySuspended = in_array(strtolower(trim($existing->status ?? '')), ['ระงับการใช้งาน', 'ระงับ', 'suspended'])
+                                     || in_array(strtolower(trim($existing->usage_rights ?? '')), ['ระงับการใช้งาน', 'ระงับ', 'suspended'])
+                                     || str_contains(strtolower(trim($existing->status ?? '')), 'ระงับ')
+                                     || str_contains(strtolower(trim($existing->usage_rights ?? '')), 'ระงับ');
+                if ($isCurrentlySuspended) {
+                    $existing->usage_rights = 'Suspended';
+                    $existing->status = 'ระงับการใช้งาน';
+                } else {
+                    if (empty($existing->usage_rights)) $existing->usage_rights = 'Active';
+                    if (empty($existing->status)) $existing->status = 'ปกติ';
+                }
+                $existing->email_verified_at = now();
+                $existing->save();
+            } else {
+                \App\Models\User::create([
+                    'user_id' => $u['user_id'],
+                    'employee_id' => $u['employee_id'],
+                    'prefix' => $u['prefix'],
+                    'first_name' => $u['first_name'],
+                    'last_name' => $u['last_name'],
+                    'name' => $u['name'],
+                    'username' => $u['username'],
+                    'email' => $u['email'],
+                    'password' => \Illuminate\Support\Facades\Hash::make($u['employee_id']),
+                    'phone_number' => $u['phone'],
+                    'user_role' => $dbRole,
+                    'usage_rights' => 'Active',
+                    'status' => 'ใช้งาน',
+                    'email_verified_at' => now(),
+                ]);
             }
-        } catch (\Throwable $exSession) {
-            $sessionTableInfo = 'Session table error: ' . $exSession->getMessage();
         }
 
-        try {
-            \Illuminate\Support\Facades\Artisan::call('view:clear');
-            \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        } catch (\Throwable $e) {}
+        // ดึงรายชื่อทั้งหมดจาก DB มาจัดรูปแบบส่งให้หน้าแอดมิน
+        $dbUsers = \App\Models\User::all();
+        $formatted = [];
+        $roleMapFromDb = [
+            'administrator' => 'admin',
+            'admin' => 'admin',
+            'executive' => 'executive',
+            'driver' => 'driver',
+            'mechanic' => 'mechanic',
+            'technician' => 'mechanic',
+            'vehiclehead' => 'vehicle_head',
+            'vehicle_head' => 'vehicle_head',
+            'student' => 'student',
+            'passenger' => 'student',
+            'staff' => 'staff',
+        ];
+
+        $seenEmp = [];
+        foreach ($dbUsers as $user) {
+            $empKey = $user->employee_id ?: $user->username ?: $user->user_id;
+            if (isset($seenEmp[$empKey])) continue;
+            $seenEmp[$empKey] = true;
+
+            $r = strtolower(trim($user->user_role ?: 'driver'));
+            $frontRole = $roleMapFromDb[$r] ?? $r;
+            $nameVal = $user->name;
+            if (!$nameVal) {
+                $nameVal = trim(($user->prefix ?? '') . ($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: $user->username;
+            }
+
+            $formatted[] = [
+                'user_id' => $user->user_id,
+                'emp_id' => $user->employee_id ?: '-',
+                'name' => $nameVal,
+                'username' => $user->username,
+                'email' => $user->email,
+                'phone' => $user->phone_number ?: '-',
+                'role' => $frontRole,
+                'status' => ($user->status === 'ระงับการใช้งาน' || $user->usage_rights === 'Suspended') ? 'ระงับการใช้งาน' : 'ปกติ',
+                'note' => $user->remark ?: ''
+            ];
+        }
+
+        return response()->json($formatted);
+    } catch (\Throwable $e) {
+        // Fallback to official list on any error
+        return response()->json($officialUsers ?? []);
+    }
+});
+
+Route::get('/api/users/list', function() {
+    return redirect('/api/admin/users');
+});
+
+Route::get('/api/system/sync-db-users', function () {
+    return redirect('/api/admin/users');
+});
+
+Route::post('/api/survey/submit', function (Request $request) {
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('surveys')) {
+            \Illuminate\Support\Facades\Schema::create('surveys', function ($table) {
+                $table->id();
+                $table->string('driver_id', 50)->nullable();
+                $table->string('driver_name', 100)->nullable();
+                $table->string('car_id', 20)->nullable();
+                $table->string('plate', 50)->nullable();
+                $table->text('ratings')->nullable();
+                $table->decimal('avg_rating', 4, 2)->nullable();
+                $table->text('comment')->nullable();
+                $table->string('user_email', 191)->nullable();
+                $table->string('survey_date', 50)->nullable();
+                $table->string('survey_time', 50)->nullable();
+                $table->timestamps();
+            });
+        }
+
+        $driverId = $request->input('driverId') ?? $request->input('driver_id') ?? '';
+        $driverName = $request->input('driverName') ?? $request->input('driver_name') ?? '';
+        $carId = $request->input('carId') ?? $request->input('car_id') ?? '';
+        $plate = $request->input('plate') ?? '';
+        $ratings = $request->input('ratings');
+        $ratingsJson = is_array($ratings) ? json_encode($ratings, JSON_UNESCAPED_UNICODE) : (string)$ratings;
+        $avg = floatval($request->input('avg') ?? $request->input('avg_rating') ?? 0);
+        $comment = $request->input('comment') ?? $request->input('feedback') ?? '';
+        $userEmail = $request->input('userEmail') ?? $request->input('email') ?? 'guest';
+        $surveyDate = $request->input('date') ?? $request->input('survey_date') ?? date('d/m/Y');
+        $surveyTime = $request->input('time') ?? $request->input('survey_time') ?? date('d/m/Y, H:i:s');
+
+        $insertedId = \Illuminate\Support\Facades\DB::table('surveys')->insertGetId([
+            'driver_id' => $driverId,
+            'driver_name' => $driverName,
+            'car_id' => $carId,
+            'plate' => $plate,
+            'ratings' => $ratingsJson,
+            'avg_rating' => $avg,
+            'comment' => $comment,
+            'user_email' => $userEmail,
+            'survey_date' => $surveyDate,
+            'survey_time' => $surveyTime,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $newEntry = [
+            'id' => $insertedId,
+            'driverId' => $driverId,
+            'driverName' => $driverName,
+            'carId' => $carId,
+            'plate' => $plate,
+            'ratings' => is_array($ratings) ? $ratings : json_decode($ratingsJson, true),
+            'avg' => $avg,
+            'comment' => $comment,
+            'userEmail' => $userEmail,
+            'date' => $surveyDate,
+            'time' => $surveyTime,
+            'created_at' => now()->toDateTimeString()
+        ];
+
+        // Fetch all surveys from DB to keep Cache 100% consistent
+        $allDbSurveys = \Illuminate\Support\Facades\DB::table('surveys')->orderBy('id', 'desc')->get();
+        $surveysList = [];
+        foreach ($allDbSurveys as $r) {
+            $surveysList[] = [
+                'id' => $r->id,
+                'driverId' => $r->driver_id,
+                'driverName' => $r->driver_name,
+                'carId' => $r->car_id,
+                'plate' => $r->plate,
+                'ratings' => !empty($r->ratings) ? json_decode($r->ratings, true) : null,
+                'avg' => floatval($r->avg_rating),
+                'comment' => $r->comment,
+                'userEmail' => $r->user_email,
+                'date' => $r->survey_date,
+                'time' => $r->survey_time,
+                'created_at' => $r->created_at
+            ];
+        }
+
+        $jsonSurveys = json_encode($surveysList, JSON_UNESCAPED_UNICODE);
+        Cache::forever('global_storage_yru_surveys', $jsonSurveys);
+        Cache::forever('global_storage_yru_passenger_evaluations', $jsonSurveys);
 
         return response()->json([
             'status' => 'success',
-            'session_table_info' => $sessionTableInfo,
-            'users' => \App\Models\User::all(['user_id', 'employee_id', 'username', 'email', 'name', 'user_role'])
+            'message' => 'บันทึกคะแนนการประเมินลงฐานข้อมูลเรียบร้อยแล้ว',
+            'entry' => $newEntry,
+            'surveys' => $surveysList,
+            'total' => count($surveysList)
         ]);
     } catch (\Throwable $e) {
-        return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
+Route::get('/api/surveys/list', function () {
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('surveys')) {
+            return response()->json([]);
+        }
+        $allDbSurveys = \Illuminate\Support\Facades\DB::table('surveys')->orderBy('id', 'desc')->get();
+        $surveysList = [];
+        foreach ($allDbSurveys as $r) {
+            $surveysList[] = [
+                'id' => $r->id,
+                'driverId' => $r->driver_id,
+                'driverName' => $r->driver_name,
+                'carId' => $r->car_id,
+                'plate' => $r->plate,
+                'ratings' => !empty($r->ratings) ? json_decode($r->ratings, true) : null,
+                'avg' => floatval($r->avg_rating),
+                'comment' => $r->comment,
+                'userEmail' => $r->user_email,
+                'date' => $r->survey_date,
+                'time' => $r->survey_time,
+                'created_at' => $r->created_at
+            ];
+        }
+        return response()->json($surveysList);
+    } catch (\Throwable $e) {
+        return response()->json([]);
     }
 });
 
@@ -166,6 +372,101 @@ Route::post('/api/storage/sync', function (Request $request) {
         if (in_array($key, $privateKeys)) {
             continue; // NEVER store private client auth data in global server cache
         }
+        if (($key === 'yru_surveys' || $key === 'yru_passenger_evaluations') && is_string($value)) {
+            $rawSurveys = json_decode($value, true);
+            if (is_array($rawSurveys)) {
+                $fakeEmails = [
+                    'salma.h@student.yru.ac.th', 'montri.c@yru.ac.th', 'surasak.w@student.yru.ac.th',
+                    'nattaporn.v@yru.ac.th', 'hasan.b@student.yru.ac.th', 'fatimah@gmail.com',
+                    'nuriyah@outlook.com', 'abdul@gmail.com'
+                ];
+                $fakePhrases = [
+                    'ขับรถนิ่ง ปลอดภัย', 'พนักงานอัธยาศัยดี', 'ให้บริการประทับใจ', 'รถสะอาดตัดครับ', 'รถสะอาดดีครับ', 
+                    'จอดรับส่งตรงจุด', 'รถสะอาด ขับนิ่ม', 'ขับขี่ปลอดภัย สุภาพ', 'ตรงเวลาสม่ำเสมอ', 'รถสะอาดสะอ้าน',
+                    'รถสะอาด นั่งสบาย', 'ขับรถเรียบร้อยดี', 'ระมัดระวังคนข้ามถนน', 'ยิ้มแย้มแจ่มใส', 'มารยาทดีเยี่ยม'
+                ];
+                $clean = array_values(array_filter($rawSurveys, function($s) use ($fakeEmails, $fakePhrases) {
+                    if (!is_array($s)) return false;
+                    $em = strtolower(trim($s['userEmail'] ?? $s['email'] ?? ''));
+                    if (in_array($em, $fakeEmails)) return false;
+                    $cm = trim($s['comment'] ?? $s['feedback'] ?? '');
+                    foreach ($fakePhrases as $ph) {
+                        if ($cm !== '' && str_contains($cm, $ph)) return false;
+                    }
+                    return true;
+                }));
+
+                // If surveys exist in clean array, ensure they are also persisted in DB table
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('surveys')) {
+                        foreach ($clean as $s) {
+                            $sUser = $s['userEmail'] ?? $s['email'] ?? 'guest';
+                            $sTime = $s['time'] ?? $s['survey_time'] ?? '';
+                            $sDriver = $s['driverId'] ?? $s['driver_id'] ?? '';
+                            $sAvg = floatval($s['avg'] ?? $s['avg_rating'] ?? 0);
+                            
+                            $exists = \Illuminate\Support\Facades\DB::table('surveys')
+                                ->where('driver_id', $sDriver)
+                                ->where('survey_time', $sTime)
+                                ->exists();
+                            if (!$exists && $sAvg > 0) {
+                                \Illuminate\Support\Facades\DB::table('surveys')->insert([
+                                    'driver_id' => $sDriver,
+                                    'driver_name' => $s['driverName'] ?? $s['driver_name'] ?? '',
+                                    'car_id' => $s['carId'] ?? $s['car_id'] ?? '',
+                                    'plate' => $s['plate'] ?? '',
+                                    'ratings' => is_array($s['ratings'] ?? null) ? json_encode($s['ratings'], JSON_UNESCAPED_UNICODE) : null,
+                                    'avg_rating' => $sAvg,
+                                    'comment' => $s['comment'] ?? $s['feedback'] ?? '',
+                                    'user_email' => $sUser,
+                                    'survey_date' => $s['date'] ?? $s['survey_date'] ?? date('d/m/Y'),
+                                    'survey_time' => $sTime,
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ]);
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {}
+
+                $value = json_encode($clean, JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        // Persist vehicle / tram data permanently to persistent JSON file and MySQL electric_trains table
+        if (($key === 'yru_trams_v18' || $key === 'yru_trams_v16') && (is_string($value) || is_array($value))) {
+            $tramArr = is_string($value) ? json_decode($value, true) : $value;
+            if (is_array($tramArr) && count($tramArr) > 0) {
+                try {
+                    @file_put_contents(storage_path('app/yru_trams_persistent.json'), json_encode($tramArr, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+                    if (\Illuminate\Support\Facades\Schema::hasTable('electric_trains')) {
+                        foreach ($tramArr as $tr) {
+                            if (empty($tr['id'])) continue;
+                            $cId = $tr['id'];
+                            $seats = isset($tr['capacity_sit']) ? intval($tr['capacity_sit']) : 10;
+                            $cName = $tr['name'] ?? ('รถไฟฟ้า ' . $cId);
+                            $cStatus = $tr['status'] ?? 'พร้อมใช้งาน';
+                            $cNum = (string)preg_replace('/[^0-9]/', '', $cId);
+                            
+                            \Illuminate\Support\Facades\DB::table('electric_trains')->updateOrInsert(
+                                ['car_id' => $cId],
+                                [
+                                    'skytrain_code' => $cId,
+                                    'car_number' => $cNum ?: '1',
+                                    'car_name' => $cName,
+                                    'electric_train_type' => 'EV Tram',
+                                    'number_of_seats' => $seats,
+                                    'car_status' => $cStatus === 'พร้อมใช้งาน' ? 'Active' : $cStatus,
+                                    'status' => $cStatus,
+                                    'updated_at' => now(),
+                                ]
+                            );
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+        }
+
         Cache::forever("global_storage_{$key}", $value);
         if (!in_array($key, $index)) {
             $index[] = $key;
@@ -173,6 +474,90 @@ Route::post('/api/storage/sync', function (Request $request) {
     }
     Cache::forever('global_storage_index', $index);
     return response()->json(['status' => 'success']);
+});
+
+Route::post('/api/admin/save-tram', function (Request $request) {
+    try {
+        $tram = $request->input('tram');
+        $allTrams = $request->input('all_trams', []);
+        
+        $pPath = storage_path('app/yru_trams_persistent.json');
+        $currentList = [];
+        if (file_exists($pPath)) {
+            $raw = @file_get_contents($pPath);
+            if ($raw) $currentList = json_decode($raw, true) ?: [];
+        }
+
+        if (is_array($allTrams) && count($allTrams) > 0) {
+            $currentList = $allTrams;
+        } elseif ($tram && !empty($tram['id'])) {
+            $found = false;
+            foreach ($currentList as $idx => $t) {
+                if ($t['id'] === $tram['id']) {
+                    $currentList[$idx] = array_merge($t, $tram);
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $currentList[] = $tram;
+            }
+        }
+
+        if (!empty($currentList)) {
+            @file_put_contents($pPath, json_encode($currentList, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+            $jsonStr = json_encode($currentList, JSON_UNESCAPED_UNICODE);
+            Cache::forever('global_storage_yru_trams_v18', $jsonStr);
+            Cache::forever('global_storage_yru_trams_v16', $jsonStr);
+        }
+
+        if ($tram && !empty($tram['id'])) {
+            $cId = $tram['id'];
+            $seats = isset($tram['capacity_sit']) ? intval($tram['capacity_sit']) : 10;
+            $cName = $tram['name'] ?? ('รถไฟฟ้า ' . $cId);
+            $cStatus = $tram['status'] ?? 'พร้อมใช้งาน';
+            $cNum = (string)preg_replace('/[^0-9]/', '', $cId);
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('electric_trains')) {
+                \Illuminate\Support\Facades\DB::table('electric_trains')->updateOrInsert(
+                    ['car_id' => $cId],
+                    [
+                        'skytrain_code' => $cId,
+                        'car_number' => $cNum ?: '1',
+                        'car_name' => $cName,
+                        'electric_train_type' => 'EV Tram',
+                        'number_of_seats' => $seats,
+                        'car_status' => $cStatus === 'พร้อมใช้งาน' ? 'Active' : $cStatus,
+                        'status' => $cStatus,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Vehicle saved permanently to persistent storage & database',
+            'tram' => $tram
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
+Route::get('/api/storage/clear-surveys', function() {
+    Cache::forever('global_storage_yru_surveys', '[]');
+    Cache::forever('global_storage_yru_passenger_evaluations', '[]');
+    Cache::forever('global_storage_yru_survey_responses', '[]');
+    try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('surveys')) {
+            \Illuminate\Support\Facades\DB::table('surveys')->truncate();
+        }
+    } catch (\Throwable $e) {}
+    return response()->json(['status' => 'success', 'message' => 'All evaluation data reset successfully.']);
 });
 
 Route::get('/api/debug-auth', function () {
@@ -221,6 +606,203 @@ $storageInitHandler = function () {
         if ($val !== null) {
             $data[$key] = $val;
         }
+    }
+
+    // Always fetch persistent surveys directly from Database
+    try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('surveys')) {
+            $allDbSurveys = \Illuminate\Support\Facades\DB::table('surveys')->orderBy('id', 'desc')->get();
+            if ($allDbSurveys->isNotEmpty()) {
+                $surveysList = [];
+                foreach ($allDbSurveys as $r) {
+                    $surveysList[] = [
+                        'id' => $r->id,
+                        'driverId' => $r->driver_id,
+                        'driverName' => $r->driver_name,
+                        'carId' => $r->car_id,
+                        'plate' => $r->plate,
+                        'ratings' => !empty($r->ratings) ? json_decode($r->ratings, true) : null,
+                        'avg' => floatval($r->avg_rating),
+                        'comment' => $r->comment,
+                        'userEmail' => $r->user_email,
+                        'date' => $r->survey_date,
+                        'time' => $r->survey_time,
+                        'created_at' => $r->created_at
+                    ];
+                }
+                $jsonSurveys = json_encode($surveysList, JSON_UNESCAPED_UNICODE);
+                $data['yru_surveys'] = $jsonSurveys;
+                $data['yru_passenger_evaluations'] = $jsonSurveys;
+                Cache::forever('global_storage_yru_surveys', $jsonSurveys);
+                Cache::forever('global_storage_yru_passenger_evaluations', $jsonSurveys);
+            }
+        }
+    } catch (\Throwable $e) {}
+
+    // Always fetch persistent vehicle / tram data directly from persistent file or electric_trains table
+    try {
+        $persistentTramPath = storage_path('app/yru_trams_persistent.json');
+        $loadedTrams = null;
+        if (file_exists($persistentTramPath)) {
+            $rawJson = @file_get_contents($persistentTramPath);
+            if ($rawJson) {
+                $decoded = json_decode($rawJson, true);
+                if (is_array($decoded) && count($decoded) > 0) {
+                    $loadedTrams = $decoded;
+                }
+            }
+        }
+        
+        // Merge or sync with electric_trains table
+        if (\Illuminate\Support\Facades\Schema::hasTable('electric_trains')) {
+            $dbTrains = \Illuminate\Support\Facades\DB::table('electric_trains')->get();
+            if ($dbTrains->isNotEmpty()) {
+                if (!$loadedTrams) {
+                    $loadedTrams = [];
+                }
+                $dbMap = [];
+                foreach ($dbTrains as $dt) {
+                    $cKey = $dt->car_id ?: $dt->skytrain_code;
+                    if ($cKey) $dbMap[$cKey] = $dt;
+                }
+                foreach ($loadedTrams as &$tItem) {
+                    $tId = $tItem['id'] ?? '';
+                    if (isset($dbMap[$tId])) {
+                        $dt = $dbMap[$tId];
+                        if (isset($dt->number_of_seats) && intval($dt->number_of_seats) > 0) {
+                            $tItem['capacity_sit'] = intval($dt->number_of_seats);
+                        }
+                        if (!empty($dt->car_name)) {
+                            $tItem['name'] = $dt->car_name;
+                        }
+                    }
+                }
+                unset($tItem);
+            }
+        }
+        
+        if ($loadedTrams && count($loadedTrams) > 0) {
+            $tramsJson = json_encode($loadedTrams, JSON_UNESCAPED_UNICODE);
+            $data['yru_trams_v18'] = $tramsJson;
+            $data['yru_trams_v16'] = $tramsJson;
+            Cache::forever('global_storage_yru_trams_v18', $tramsJson);
+            Cache::forever('global_storage_yru_trams_v16', $tramsJson);
+        }
+    } catch (\Throwable $e) {}
+
+    // Always ensure yru_stops_v2 has all 9 stops
+    $defaultStops9 = [
+        ["sequence" => 1, "name" => "จุดจอด 1 หน้าอาคารที่พักบุคลากร", "lat" => 6.549929, "lng" => 101.291254, "route" => "สายสีชมพู"],
+        ["sequence" => 2, "name" => "จุดจอด 2 หน้าตึกศิลปะ", "lat" => 6.549100, "lng" => 101.290467, "route" => "สายสีชมพู"],
+        ["sequence" => 3, "name" => "จุดจอด 3 หน้าอาคารศูนย์วิทยาศาสตร์", "lat" => 6.547835, "lng" => 101.289502, "route" => "สายสีชมพู"],
+        ["sequence" => 4, "name" => "จุดจอด 4 หน้าอาคารคณะวิทยาศาสตร์", "lat" => 6.547224, "lng" => 101.289471, "route" => "สายสีชมพู"],
+        ["sequence" => 5, "name" => "จุดจอด 5 หน้าอาคารคณะสังคมศาสตร์", "lat" => 6.547311, "lng" => 101.288880, "route" => "สายสีชมพู"],
+        ["sequence" => 6, "name" => "จุดจอด 6 หน้าร้าน Old School", "lat" => 6.547687, "lng" => 101.288335, "route" => "สายสีชมพู"],
+        ["sequence" => 7, "name" => "จุดจอด 7 หน้าอาคาร20", "lat" => 6.548822, "lng" => 101.288523, "route" => "สายสีชมพู"],
+        ["sequence" => 8, "name" => "จุดจอด 8 หน้าอาคารคณะวิทยาการจัดการ", "lat" => 6.549225, "lng" => 101.289286, "route" => "สายสีชมพู"],
+        ["sequence" => 9, "name" => "จุดจอด 9 หน้าโรงอาหาร", "lat" => 6.550323, "lng" => 101.290024, "route" => "สายสีชมพู"]
+    ];
+    $currentStops = isset($data['yru_stops_v2']) ? json_decode($data['yru_stops_v2'], true) : null;
+    if (!is_array($currentStops) || count($currentStops) < 9) {
+        $data['yru_stops_v2'] = json_encode($defaultStops9);
+        Cache::forever('global_storage_yru_stops_v2', $data['yru_stops_v2']);
+    }
+
+    $defaultLiveRoutes = [
+        [
+            "route_code" => "LINE-01",
+            "route_name" => "LINE-01",
+            "route_color" => "#E91E63",
+            "color" => "#E91E63",
+            "route_details" => "เส้นทางเดินรถ LINE-01 (2 จุดจอด)",
+            "polyline_data" => [
+                [6.549959, 101.291251],
+                [6.550026, 101.291156],
+                [6.549865, 101.290998],
+                [6.549179, 101.290499]
+            ]
+        ],
+        [
+            "route_code" => "LINE-02",
+            "route_name" => "LINE-02",
+            "route_color" => "#E91E63",
+            "color" => "#E91E63",
+            "route_details" => "เส้นทางเดินรถ LINE-02 (2 จุดจอด)",
+            "polyline_data" => [
+                [6.549179, 101.290499],
+                [6.548483, 101.289998],
+                [6.547844, 101.289524]
+            ]
+        ],
+        [
+            "route_code" => "LINE-03",
+            "route_name" => "LINE-03",
+            "route_color" => "#E91E63",
+            "color" => "#E91E63",
+            "route_details" => "เส้นทางเดินรถ LINE-03 (2 จุดจอด)",
+            "polyline_data" => [
+                [6.547844, 101.289524],
+                [6.547196, 101.289454]
+            ]
+        ],
+        [
+            "route_code" => "LINE-04",
+            "route_name" => "LINE-04",
+            "route_color" => "#E91E63",
+            "color" => "#E91E63",
+            "route_details" => "เส้นทางเดินรถ LINE-04 (2 จุดจอด)",
+            "polyline_data" => [
+                [6.547196, 101.289454],
+                [6.546950, 101.289196],
+                [6.547362, 101.288873]
+            ]
+        ],
+        [
+            "route_code" => "LINE-05",
+            "route_name" => "LINE-05",
+            "route_color" => "#E91E63",
+            "color" => "#E91E63",
+            "route_details" => "เส้นทางเดินรถ LINE-05 (2 จุดจอด)",
+            "polyline_data" => [
+                [6.547362, 101.288873],
+                [6.547785, 101.288229],
+                [6.548284, 101.288562],
+                [6.548273, 101.288688],
+                [6.548547, 101.288881],
+                [6.548763, 101.288548]
+            ]
+        ],
+        [
+            "route_code" => "LINE-06",
+            "route_name" => "LINE-06",
+            "route_color" => "#E91E63",
+            "color" => "#E91E63",
+            "route_details" => "เส้นทางเดินรถ LINE-06 (2 จุดจอด)",
+            "polyline_data" => [
+                [6.548799, 101.288543],
+                [6.548572, 101.288899],
+                [6.549186, 101.289286]
+            ]
+        ],
+        [
+            "route_code" => "LINE-07",
+            "route_name" => "LINE-07",
+            "route_color" => "#E91E63",
+            "color" => "#E91E63",
+            "route_details" => "เส้นทางเดินรถ LINE-07 (2 จุดจอด)",
+            "polyline_data" => [
+                [6.549241, 101.289314],
+                [6.550436, 101.290129],
+                [6.549865, 101.290998],
+                [6.550026, 101.291156],
+                [6.549959, 101.291251]
+            ]
+        ]
+    ];
+    $currentRoutes = isset($data['yru_routes_v1']) ? json_decode($data['yru_routes_v1'], true) : null;
+    if (!is_array($currentRoutes) || count($currentRoutes) < 6) {
+        $data['yru_routes_v1'] = json_encode($defaultLiveRoutes);
+        Cache::forever('global_storage_yru_routes_v1', $data['yru_routes_v1']);
     }
     
     $privateKeysJson = json_encode($privateKeys);
@@ -313,12 +895,38 @@ Route::get('/logout', function() {
     \Illuminate\Support\Facades\Auth::logout();
     session()->invalidate();
     session()->regenerateToken();
+
+    \Illuminate\Support\Facades\Cache::forget('latest_ev_request');
+    if (file_exists(storage_path('app/latest_ev_request.json'))) {
+        @unlink(storage_path('app/latest_ev_request.json'));
+    }
+    for ($i = 1; $i <= 10; $i++) {
+        $cid = sprintf('EV-%02d', $i);
+        \Illuminate\Support\Facades\Cache::forget('latest_ev_request_' . $cid);
+        if (file_exists(storage_path('app/latest_ev_request_' . $cid . '.json'))) {
+            @unlink(storage_path('app/latest_ev_request_' . $cid . '.json'));
+        }
+    }
+
     return redirect('/');
 })->name('logout');
 Route::post('/logout', function() {
     \Illuminate\Support\Facades\Auth::logout();
     session()->invalidate();
     session()->regenerateToken();
+
+    \Illuminate\Support\Facades\Cache::forget('latest_ev_request');
+    if (file_exists(storage_path('app/latest_ev_request.json'))) {
+        @unlink(storage_path('app/latest_ev_request.json'));
+    }
+    for ($i = 1; $i <= 10; $i++) {
+        $cid = sprintf('EV-%02d', $i);
+        \Illuminate\Support\Facades\Cache::forget('latest_ev_request_' . $cid);
+        if (file_exists(storage_path('app/latest_ev_request_' . $cid . '.json'))) {
+            @unlink(storage_path('app/latest_ev_request_' . $cid . '.json'));
+        }
+    }
+
     return redirect('/');
 });
 
@@ -352,6 +960,8 @@ Route::get('/admin-view', function () {
         return redirect('/');
     }
     $recentActivities = [];
+    $drivers = [];
+    $electricTrains = [];
     try {
         if (\Illuminate\Support\Facades\Schema::hasTable('travel_histories')) {
             $recentActivities = \App\Models\TravelHistory::with(['electricTrain', 'driver', 'route'])
@@ -359,10 +969,19 @@ Route::get('/admin-view', function () {
                 ->take(10)
                 ->get();
         }
+        if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+            $drivers = \App\Models\User::where('user_role', 'like', '%driver%')
+                ->orWhere('user_role', 'like', '%คนขับ%')
+                ->orWhere('user_role', 'like', '%พนักงานขับ%')
+                ->get();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('electric_trains')) {
+            $electricTrains = \App\Models\ElectricTrain::all();
+        }
     } catch (\Exception $e) {
         $recentActivities = [];
     }
-    return view('passenger.admin.index', compact('recentActivities')); 
+    return view('passenger.admin.index', compact('recentActivities', 'drivers', 'electricTrains')); 
 })->name('admin.view');
 
 Route::get('/admin', function () {

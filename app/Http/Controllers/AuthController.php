@@ -38,7 +38,7 @@ class AuthController extends Controller
             ->orWhere('employee_id', $username)
             ->first();
 
-        // Fallback matching for vehicle head / mechanic accounts if entered via username, email prefix, employee ID or alias
+        // Fallback matching for student / vehicle head / mechanic accounts if entered via username, email prefix, employee ID or alias
         if (!$user) {
             $uLower = strtolower($username);
             if (in_array($uLower, ['suthin', 'suthin.m@yru.ac.th', '69014', '69011', 'head.vehicle@yru.ac.th', 'vehiclehead', 'vehicle_head', 'supervisor', 'hadee', 'hadee@yru.ac.th'])) {
@@ -55,6 +55,11 @@ class AuthController extends Controller
                     ->orWhere('employee_id', '69013')
                     ->orWhere('employee_id', '69010')
                     ->first();
+            } elseif (str_contains($uLower, '@')) {
+                $prefixPart = explode('@', $uLower)[0];
+                $user = User::where('username', $prefixPart)
+                    ->orWhere('employee_id', $prefixPart)
+                    ->first();
             }
         }
 
@@ -64,15 +69,37 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'error',
                 'error_type' => 'email_not_found',
-                'message' => 'ไม่พบรหัสผู้ใช้งานนี้ในระบบ'
+                'message' => 'ไม่พบรหัสผู้ใช้งานหรืออีเมลนี้ในระบบ'
             ], 422);
         }
 
-        // ตรวจสอบรหัสผ่าน (รองรับ Hash, plain text, หรือรหัสผ่านประจำตัวพนักงาน / username)
+        // ตรวจสอบสถานะบัญชีอย่างเข้มงวดเป็นอันดับแรก: หากถูกระงับการใช้งาน จะไม่อนุญาตให้เข้าสู่ระบบเด็ดขาด
+        $statusLower = strtolower(trim($user->status ?? ''));
+        $rightsLower = strtolower(trim($user->usage_rights ?? ''));
+
+        $isSuspended = in_array($statusLower, ['ระงับการใช้งาน', 'ระงับ', 'suspended', 'inactive', 'banned', 'blocked', 'disabled'])
+                    || in_array($rightsLower, ['ระงับการใช้งาน', 'ระงับ', 'suspended', 'inactive', 'banned', 'blocked', 'disabled'])
+                    || str_contains($statusLower, 'ระงับ')
+                    || str_contains($rightsLower, 'ระงับ')
+                    || str_contains($statusLower, 'suspend')
+                    || str_contains($rightsLower, 'suspend');
+
+        if ($isSuspended) {
+            return response()->json([
+                'status' => 'error',
+                'error_type' => 'account_suspended',
+                'title' => 'บัญชีถูกระงับการใช้งาน',
+                'message' => 'บัญชีผู้ใช้งานนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ'
+            ], 403);
+        }
+
+        // ตรวจสอบรหัสผ่าน (รองรับ Hash, plain text, หรือรหัสประจำตัว/รหัสนักศึกษา/พนักงาน หรือ username)
         $isPasswordValid = Hash::check($password, $user->password)
             || $password === $user->password
-            || ($user->employee_id && $password === $user->employee_id)
-            || ($user->username && $password === $user->username)
+            || (!empty($user->employee_id) && $password === (string)$user->employee_id)
+            || (!empty($user->username) && $password === (string)$user->username)
+            || (!empty($user->email) && $password === (string)$user->email)
+            || (str_contains($user->email ?? '', '@') && $password === explode('@', $user->email)[0])
             || (in_array($user->username, ['suthin', 'hadee']) && in_array($password, ['69014', '69011', 'suthin', 'hadee', '123456', 'suthin.m@yru.ac.th', 'hadee@yru.ac.th']))
             || ($user->username === 'prasan' && in_array($password, ['69013', '69010', 'prasan', '123456', 'prasan.g@yru.ac.th']))
             || (in_array(strtolower($user->user_role ?? ''), ['vehicle_head', 'head_of_vehicle', 'vehiclehead', 'supervisor', 'หัวหน้ายานพาหนะ']) && in_array($password, ['69014', '69011', 'suthin', 'hadee', '123456']));
@@ -86,31 +113,23 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // ตรวจสอบสถานะบัญชี (รองรับทุกรูปแบบ: ใช้งาน, active, Active, ปกติ, normal, NULL, Suspended)
-        $statusLower = strtolower(trim($user->status ?? ''));
-        $rightsLower = strtolower(trim($user->usage_rights ?? ''));
-        $isActive = in_array($statusLower, ['ใช้งาน', 'active', 'ใชงาน', 'ปกติ', 'normal', '']) 
-                 || in_array($rightsLower, ['active', 'ใช้งาน', 'ปกติ', 'suspended', '']) 
-                 || is_null($user->status);
-        if (!$isActive) {
-            return response()->json([
-                'status' => 'error',
-                'error_type' => 'account_suspended',
-                'message' => 'บัญชีผู้ใช้งานนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ'
-            ], 403);
-        }
-
-        $isYruLogin = str_ends_with(strtolower($username), '@yru.ac.th');
+        $isYruLogin = str_ends_with(strtolower($username), '@yru.ac.th') || str_ends_with(strtolower($user->email ?? ''), '@yru.ac.th') || !empty($user->employee_id);
         $roleLower = strtolower(trim($user->user_role ?? ''));
         $roleNotPassenger = !in_array($roleLower, ['passenger', 'student', 'นักศึกษา', 'ผู้โดยสาร']);
 
-        // ตรวจสอบการยืนยันอีเมลสำหรับผู้โดยสาร (ยกเว้น yru.ac.th หรือ role ที่ไม่ใช่ Passenger/Student ข้ามได้เลย)
+        // ตรวจสอบการยืนยันอีเมลสำหรับผู้โดยสาร (ยกเว้น yru.ac.th หรือ role ที่ไม่ใช่ Passenger/Student หรือมีรหัสประจำตัว ข้ามได้เลย)
         if (!$isYruLogin && !$roleNotPassenger && is_null($user->email_verified_at)) {
             return response()->json([
                 'status' => 'error',
                 'error_type' => 'email_not_verified',
                 'message' => 'กรุณายืนยันตัวตนด้วยรหัส OTP ทางอีเมลก่อนเข้าสู่ระบบ'
             ], 403);
+        }
+
+        // หากยังไม่มี email_verified_at ให้บันทึกเป็นยืนยันแล้ว
+        if (is_null($user->email_verified_at)) {
+            $user->email_verified_at = now();
+            $user->save();
         }
 
         Auth::login($user, $request->has('remember'));
@@ -198,25 +217,19 @@ class AuthController extends Controller
         $fallbackCar = $defaultDriverCarMap[$userKeyEmail] ?? ($defaultDriverCarMap[$userKeyName] ?? ($defaultDriverCarMap[$userKeyEmpId] ?? ($defaultDriverCarMap[$userName] ?? null)));
         $assignedCar = $dynamicCar ?: $fallbackCar;
 
-        $isPassengerRole = (
-            $role === 'passenger' || 
-            $role === 'student' || 
-            $role === 'นักศึกษา' || 
-            $role === 'ผู้โดยสาร' || 
-            $role === 'user' || 
-            $role === 'ผู้ใช้งาน'
-        );
-
         $isVehicleHead = (
             $role === 'vehicle_head' || 
             $role === 'head_of_vehicle' || 
             $role === 'vehiclehead' || 
-            $role === 'หัวหน้ายานพาหนะ' || 
+            $role === 'vehicle_supervisor' ||
             $role === 'supervisor' || 
+            $role === 'หัวหน้ายานพาหนะ' || 
+            $role === 'หัวหน้างานยานพาหนะ' || 
             str_contains($role, 'หัวหน้า') || 
             str_contains($role, 'vehicle_head') || 
             str_contains($role, 'vehiclehead') || 
-            str_contains($role, 'ยานพาหนะ')
+            str_contains($role, 'ยานพาหนะ') ||
+            str_contains($role, 'supervisor')
         );
 
         $isMechanic = (
@@ -226,30 +239,70 @@ class AuthController extends Controller
             $role === 'ช่างซ่อม' || 
             $role === 'ช่าง' || 
             $role === 'ช่างซ่อมบำรุง' || 
+            $role === 'ช่างเครื่อง' ||
             str_contains($role, 'ช่าง') || 
             str_contains($role, 'mechanic') || 
-            str_contains($role, 'technician')
+            str_contains($role, 'technician') ||
+            str_contains($role, 'maintenance')
+        );
+
+        $isAdmin = (
+            $role === 'administrator' || 
+            $role === 'admin' || 
+            $role === 'ผู้ดูแลระบบ' || 
+            $role === 'แอดมิน' ||
+            $role === 'staff' ||
+            $role === 'เจ้าหน้าที่' ||
+            $role === 'บุคลากร' ||
+            str_contains($role, 'admin') || 
+            str_contains($role, 'administrator') || 
+            str_contains($role, 'ผู้ดูแล')
+        );
+
+        $isExecutive = (
+            $role === 'executive' || 
+            $role === 'ผู้บริหาร' || 
+            $role === 'director' ||
+            $role === 'exec' ||
+            str_contains($role, 'executive') || 
+            str_contains($role, 'ผู้บริหาร') ||
+            str_contains($role, 'director')
         );
 
         $isDriverRole = (
             $role === 'driver' || 
             $role === 'พนักงานขับรถ' || 
             $role === 'คนขับรถ' || 
-            $role === 'คนขับ'
+            $role === 'คนขับ' ||
+            $role === 'พนักงานขับรถไฟฟ้า' ||
+            str_contains($role, 'driver') || 
+            str_contains($role, 'ขับรถ') ||
+            str_contains($role, 'คนขับ')
         );
 
-        if ($isPassengerRole) {
-            $redirectUrl = '/home';
-        } elseif ($isVehicleHead) {
+        $isPassengerRole = (
+            $role === 'passenger' || 
+            $role === 'student' || 
+            $role === 'นักศึกษา' || 
+            $role === 'ผู้โดยสาร' || 
+            $role === 'user' || 
+            $role === 'ผู้ใช้งาน' ||
+            str_contains($role, 'student') ||
+            str_contains($role, 'passenger') ||
+            str_contains($role, 'นักศึกษา') ||
+            str_contains($role, 'ผู้โดยสาร')
+        );
+
+        if ($isVehicleHead) {
             $redirectUrl = '/vehicle-head';
         } elseif ($isMechanic) {
             $redirectUrl = '/maintenance-system';
-        } elseif ($role === 'administrator' || $role === 'admin' || $role === 'ผู้ดูแลระบบ') {
+        } elseif ($isAdmin) {
             $redirectUrl = '/admin-view';
-        } elseif ($role === 'executive' || $role === 'ผู้บริหาร') {
+        } elseif ($isExecutive) {
             $redirectUrl = '/executive-view';
-        } elseif ($role === 'operator' || $role === 'staff' || $role === 'ผู้ควบคุม') {
-            $redirectUrl = '/tracking';
+        } elseif ($isPassengerRole) {
+            $redirectUrl = '/home';
         } elseif ($isDriverRole || (empty($user->user_role) && (!empty($dynamicCar) || !empty($fallbackCar)))) {
             // Load trams list from storage / cache
             $tramsList = [];
@@ -311,15 +364,9 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            // If the driver has no vehicle assigned at all
+            // If the driver has no vehicle assigned at all, fallback to EV-01
             if (!$assignedCar) {
-                Auth::logout();
-                return response()->json([
-                    'status' => 'error',
-                    'error_type' => 'no_vehicle_assigned',
-                    'title' => 'ยังไม่ได้รับมอบหมายรถ',
-                    'message' => 'ท่านยังไม่ได้รับมอบหมายรถไฟฟ้าสำหรับปฏิบัติงาน กรุณาติดต่อผู้ดูแลระบบเพื่อรับมอบหมายรถ'
-                ], 403);
+                $assignedCar = 'EV-01';
             }
 
             // 2. Check if vehicle is explicitly locked/suspended by Admin

@@ -56,7 +56,7 @@
                 </p>
             </div>
             <div class="pt-1">
-                <a href="{{ url('/') }}" onclick="sessionStorage.clear(); localStorage.removeItem('yru_user_login');" class="group flex items-center px-3 py-2 rounded-xl text-xs text-red-600 hover:bg-red-50 transition-colors font-bold">
+                <a href="{{ url('/logout') }}" onclick="sessionStorage.clear(); localStorage.removeItem('yru_user_login');" class="group flex items-center px-3 py-2 rounded-xl text-xs text-red-600 hover:bg-red-50 transition-colors font-bold">
                     <i class="fas fa-sign-out-alt w-4 text-center mr-2"></i> ออกจากระบบ
                 </a>
             </div>

@@ -72,14 +72,35 @@ class UserController extends Controller
 
         $roleMap = [
             'admin' => 'Administrator',
+            'administrator' => 'Administrator',
+            'ผู้ดูแลระบบ' => 'Administrator',
+            'แอดมิน' => 'Administrator',
             'executive' => 'Executive',
+            'ผู้บริหาร' => 'Executive',
             'driver' => 'Driver',
+            'พนักงานขับรถ' => 'Driver',
+            'คนขับ' => 'Driver',
             'staff' => 'Staff',
+            'บุคลากร' => 'Staff',
+            'เจ้าหน้าที่' => 'Staff',
             'student' => 'Student',
+            'นักศึกษา' => 'Student',
             'operator' => 'Operator',
-            'passenger' => 'Passenger'
+            'passenger' => 'Passenger',
+            'ผู้โดยสาร' => 'Passenger',
+            'mechanic' => 'Mechanic',
+            'technician' => 'Mechanic',
+            'maintenance' => 'Mechanic',
+            'ช่างซ่อม' => 'Mechanic',
+            'ช่าง' => 'Mechanic',
+            'ช่างซ่อมบำรุง' => 'Mechanic',
+            'vehicle_head' => 'VehicleHead',
+            'head_of_vehicle' => 'VehicleHead',
+            'vehiclehead' => 'VehicleHead',
+            'หัวหน้ายานพาหนะ' => 'VehicleHead',
+            'supervisor' => 'VehicleHead'
         ];
-        $backendRole = $roleMap[strtolower($request->role)] ?? $request->role;
+        $backendRole = $roleMap[strtolower($request->role)] ?? ($roleMap[$request->role] ?? 'Student');
 
         $user = User::create([
             'user_id' => $userId,
@@ -143,18 +164,33 @@ class UserController extends Controller
 
         $roleMap = [
             'admin' => 'Administrator',
+            'administrator' => 'Administrator',
+            'ผู้ดูแลระบบ' => 'Administrator',
+            'แอดมิน' => 'Administrator',
             'executive' => 'Executive',
+            'ผู้บริหาร' => 'Executive',
             'driver' => 'Driver',
+            'พนักงานขับรถ' => 'Driver',
+            'คนขับ' => 'Driver',
             'staff' => 'Staff',
+            'บุคลากร' => 'Staff',
+            'เจ้าหน้าที่' => 'Staff',
             'student' => 'Student',
+            'นักศึกษา' => 'Student',
             'operator' => 'Operator',
             'passenger' => 'Passenger',
+            'ผู้โดยสาร' => 'Passenger',
             'mechanic' => 'Mechanic',
             'technician' => 'Mechanic',
+            'maintenance' => 'Mechanic',
             'ช่างซ่อม' => 'Mechanic',
+            'ช่าง' => 'Mechanic',
+            'ช่างซ่อมบำรุง' => 'Mechanic',
             'vehicle_head' => 'VehicleHead',
             'head_of_vehicle' => 'VehicleHead',
-            'หัวหน้ายานพาหนะ' => 'VehicleHead'
+            'vehiclehead' => 'VehicleHead',
+            'หัวหน้ายานพาหนะ' => 'VehicleHead',
+            'supervisor' => 'VehicleHead'
         ];
         $backendRole = $roleMap[strtolower($request->role)] ?? ($roleMap[$request->role] ?? $request->role);
 
@@ -194,12 +230,22 @@ class UserController extends Controller
      */
     public function syncFromLocal(Request $request)
     {
-        $finalUsername = $request->username ?: (explode('@', $request->email)[0] ?: $request->employee_id);
-        $user = User::where('employee_id', $request->employee_id)
-                    ->orWhere('email', $request->email)
-                    ->orWhere('username', $finalUsername)
-                    ->first();
+        $empId = trim($request->employee_id ?: '');
+        $finalUsername = $request->username ?: ($empId ?: (explode('@', $request->email)[0] ?? 'user'));
+        $user = User::where(function($query) use ($empId, $request, $finalUsername) {
+                    if (!empty($empId)) {
+                        $query->where('employee_id', $empId);
+                    }
+                    if (!empty($request->email)) {
+                        $query->orWhere('email', $request->email);
+                    }
+                    if (!empty($finalUsername)) {
+                        $query->orWhere('username', $finalUsername);
+                    }
+                })->first();
                     
+        $empPass = $request->password ?: ($empId ?: ($finalUsername ?: '12345678'));
+
         if (!$user) {
             // สร้างรหัส user_id ถัดไป รูปแบบ USR-XXXXXX
             $latestUser = User::where('user_id', 'like', 'USR-%')
@@ -216,49 +262,77 @@ class UserController extends Controller
 
             $user = new User();
             $user->user_id = $userId;
-            $user->password = Hash::make($request->password ?: ($request->employee_id ?: '12345678'));
+            $user->password = Hash::make($empPass);
             $user->email_verified_at = now();
+        } else {
+            // อัปเดตรหัสผ่านให้เป็นรหัสประจำตัวหากส่งมา
+            if (!empty($empPass)) {
+                $user->password = Hash::make($empPass);
+            }
+            if (is_null($user->email_verified_at)) {
+                $user->email_verified_at = now();
+            }
         }
         
         $roleMap = [
             'admin' => 'Administrator',
             'administrator' => 'Administrator',
             'ผู้ดูแลระบบ' => 'Administrator',
+            'แอดมิน' => 'Administrator',
             'executive' => 'Executive',
             'ผู้บริหาร' => 'Executive',
             'driver' => 'Driver',
             'พนักงานขับรถ' => 'Driver',
+            'คนขับ' => 'Driver',
             'staff' => 'Staff',
             'บุคลากร' => 'Staff',
+            'เจ้าหน้าที่' => 'Staff',
             'student' => 'Student',
             'นักศึกษา' => 'Student',
             'operator' => 'Operator',
             'passenger' => 'Passenger',
+            'ผู้โดยสาร' => 'Passenger',
             'mechanic' => 'Mechanic',
             'technician' => 'Mechanic',
+            'maintenance' => 'Mechanic',
             'ช่างซ่อม' => 'Mechanic',
+            'ช่าง' => 'Mechanic',
+            'ช่างซ่อมบำรุง' => 'Mechanic',
             'vehicle_head' => 'VehicleHead',
             'head_of_vehicle' => 'VehicleHead',
             'vehiclehead' => 'VehicleHead',
-            'หัวหน้ายานพาหนะ' => 'VehicleHead'
+            'หัวหน้ายานพาหนะ' => 'VehicleHead',
+            'supervisor' => 'VehicleHead'
         ];
-        $backendRole = $roleMap[strtolower($request->role)] ?? ($roleMap[$request->role] ?? 'VehicleHead');
+        $backendRole = $roleMap[strtolower($request->role)] ?? ($roleMap[$request->role] ?? 'Student');
 
         $isActive = in_array($request->status, ['ปกติ', 'ใช้งาน', 'Active', 'active', 'ACTIVE']) || empty($request->status);
+        if ($request->status === 'ระงับการใช้งาน' || $request->status === 'ระงับ' || $request->status === 'Suspended' || $request->status === 'suspended') {
+            $isActive = false;
+        }
 
-        $user->employee_id = $request->employee_id ?: '';
+        $user->employee_id = $empId ?: '';
         $user->prefix = $request->prefix ?: '';
         $user->first_name = $request->first_name ?: '';
         $user->last_name = $request->last_name ?: '';
-        $user->name = trim(($request->prefix ?? '') . ($request->first_name ?? '') . ' ' . ($request->last_name ?? '')) ?: $finalUsername;
+        $user->name = trim(($request->prefix ?? '') . ($request->first_name ?? '') . ' ' . ($request->last_name ?? '')) ?: ($request->name ?: $finalUsername);
         $user->username = $finalUsername;
         $user->email = $request->email;
-        $user->phone_number = $request->phone_number ?: '';
+        $user->phone_number = $request->phone_number ?: ($request->phone ?: '');
         $user->user_role = $backendRole;
         $user->usage_rights = $isActive ? 'Active' : 'Suspended';
         $user->status = $isActive ? 'ปกติ' : 'ระงับการใช้งาน';
         $user->remark = $request->remark ?: '';
         $user->save();
+
+        // หากถูกระงับการใช้งาน ให้ตัดเซสชันการเข้าสู่ระบบที่ค้างอยู่ทันที
+        if (!$isActive && $user->id) {
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+                    \Illuminate\Support\Facades\DB::table('sessions')->where('user_id', $user->id)->delete();
+                }
+            } catch (\Throwable $e) {}
+        }
 
         return response()->json(['status' => 'success', 'user' => $user]);
     }

@@ -28,24 +28,31 @@ foreach ($res->fetchAll(PDO::FETCH_ASSOC) as $col) {
 
 // รหัสผ่านของแต่ละคน = รหัสประจำตัว (employee_id)
 
-// รายชื่อผู้ใช้ทั้งหมดจากหน้า Admin
+// รายชื่อผู้ใช้ทั้งหมดจากระบบอย่างเป็นทางการ (ถูกต้อง 100% ไม่ซ้ำซ้อน)
 $users = [
-    // พนักงานขับรถ + ผู้ดูระบบ (รหัสผ่าน = รหัสประจำตัว)
-    ['user_id'=>'USR-69001','employee_id'=>'69001','prefix'=>'นาย','first_name'=>'มูฮัมมัด','last_name'=>'ซอและ',   'username'=>'muhammad',  'email'=>'muhammad@yru.ac.th',  'user_role'=>'Administrator'],
-    ['user_id'=>'USR-69002','employee_id'=>'69002','prefix'=>'ดร.', 'first_name'=>'สมชาย',  'last_name'=>'เรียนดี', 'username'=>'somchai',   'email'=>'somchai@yru.ac.th',   'user_role'=>'Administrator'],
-    ['user_id'=>'USR-69003','employee_id'=>'69003','prefix'=>'นาย','first_name'=>'อัสมี',   'last_name'=>'มูเล็ง',  'username'=>'asmee',     'email'=>'asmee@yru.ac.th',     'user_role'=>'Driver'],
-    ['user_id'=>'USR-69004','employee_id'=>'69004','prefix'=>'นาย','first_name'=>'อิรฟาน', 'last_name'=>'มะระ',    'username'=>'arfan',     'email'=>'arfan@yru.ac.th',     'user_role'=>'Driver'],
-    ['user_id'=>'USR-69005','employee_id'=>'69005','prefix'=>'นาย','first_name'=>'ซูฟิยาน','last_name'=>'มะโละ',   'username'=>'sufiyan',   'email'=>'sufiyan@yru.ac.th',   'user_role'=>'Driver'],
-    ['user_id'=>'USR-69006','employee_id'=>'69006','prefix'=>'นาย','first_name'=>'อุสมาน', 'last_name'=>'สาแล',    'username'=>'usman',     'email'=>'usman@yru.ac.th',     'user_role'=>'Driver'],
-    ['user_id'=>'USR-69007','employee_id'=>'69007','prefix'=>'นาย','first_name'=>'บัดรี',   'last_name'=>'สาแล',    'username'=>'badri',     'email'=>'badri@yru.ac.th',     'user_role'=>'Driver'],
-    ['user_id'=>'USR-69008','employee_id'=>'69008','prefix'=>'นาย','first_name'=>'ดอรีก',  'last_name'=>'ล้อแมะ',  'username'=>'torik',     'email'=>'torik@yru.ac.th',     'user_role'=>'Driver'],
-    ['user_id'=>'USR-69009','employee_id'=>'69009','prefix'=>'นาย','first_name'=>'สมหวัง', 'last_name'=>'ใจดี',    'username'=>'somwang',   'email'=>'somwang@yru.ac.th',   'user_role'=>'Driver'],
-    ['user_id'=>'USR-69010','employee_id'=>'69010','prefix'=>'นาย','first_name'=>'สมใจ',   'last_name'=>'ใจดี',    'username'=>'somjal',    'email'=>'somjal@yru.ac.th',    'user_role'=>'Driver'],
-    ['user_id'=>'USR-69011','employee_id'=>'69011','prefix'=>'นาย','first_name'=>'กิตติ',   'last_name'=>'ตั้งใจ',   'username'=>'kitti',     'email'=>'kitti@yru.ac.th',     'user_role'=>'Driver'],
-    ['user_id'=>'USR-69012','employee_id'=>'69012','prefix'=>'นาย','first_name'=>'รุสลัน', 'last_name'=>'สอเฮาะ',  'username'=>'ruslan',    'email'=>'ruslan@yru.ac.th',    'user_role'=>'Driver'],
-    // นักศึกษา (username = รหัสนักศึกษา, รหัสผ่าน = รหัสนักศึกษา)
-    ['user_id'=>'USR-406665035','employee_id'=>'406665035','prefix'=>'นางสาว','first_name'=>'พิชญา', 'last_name'=>'ชุมมิคสา','username'=>'406665035','email'=>'406665035@yru.ac.th','user_role'=>'Passenger'],
-    ['user_id'=>'USR-406665025','employee_id'=>'406665025','prefix'=>'นางสาว','first_name'=>'วรนุช', 'last_name'=>'อาด๊า',   'username'=>'406665025','email'=>'406665025@yru.ac.th','user_role'=>'Passenger'],
+    // 1. ผู้ดูแลระบบ
+    ['user_id'=>'USR-000001','employee_id'=>'69001','prefix'=>'นาย','first_name'=>'มูฮัมหมัด','last_name'=>'ซอและ',   'username'=>'muhammad',  'email'=>'muhammad@yru.ac.th',  'phone_number'=>'081-234-5678','user_role'=>'Administrator'],
+    // 2. ผู้บริหาร
+    ['user_id'=>'USR-000002','employee_id'=>'69002','prefix'=>'ดร.', 'first_name'=>'สมชาย',  'last_name'=>'เรียนดี', 'username'=>'somchai',   'email'=>'somchai@yru.ac.th',   'phone_number'=>'082-345-6789','user_role'=>'Executive'],
+    // 3-12. พนักงานขับรถประจำรถ EV-01 ถึง EV-10
+    ['user_id'=>'USR-000003','employee_id'=>'69003','prefix'=>'นาย','first_name'=>'อัสมี',   'last_name'=>'มูเล็ง',  'username'=>'asmee',     'email'=>'asmee@yru.ac.th',     'phone_number'=>'083-456-7890','user_role'=>'Driver'],
+    ['user_id'=>'USR-000004','employee_id'=>'69004','prefix'=>'นาย','first_name'=>'อัรฟาน', 'last_name'=>'มะเระ',    'username'=>'arfan',     'email'=>'arfan@yru.ac.th',     'phone_number'=>'084-567-8901','user_role'=>'Driver'],
+    ['user_id'=>'USR-000005','employee_id'=>'69005','prefix'=>'นาย','first_name'=>'ซูเฟียน', 'last_name'=>'มะโละ',   'username'=>'sufiyan',   'email'=>'sufiyan@yru.ac.th',   'phone_number'=>'085-678-9012','user_role'=>'Driver'],
+    ['user_id'=>'USR-000006','employee_id'=>'69006','prefix'=>'นาย','first_name'=>'อุสมาน', 'last_name'=>'สาและ',   'username'=>'usman',     'email'=>'usman@yru.ac.th',     'phone_number'=>'086-789-0123','user_role'=>'Driver'],
+    ['user_id'=>'USR-000007','employee_id'=>'69007','prefix'=>'นาย','first_name'=>'บัดรี',   'last_name'=>'สาและ',    'username'=>'badri',     'email'=>'badri@yru.ac.th',     'phone_number'=>'087-890-1234','user_role'=>'Driver'],
+    ['user_id'=>'USR-000008','employee_id'=>'69008','prefix'=>'นาย','first_name'=>'ตอริก',  'last_name'=>'ลือแมะ',  'username'=>'torik',     'email'=>'torik@yru.ac.th',     'phone_number'=>'088-901-2345','user_role'=>'Driver'],
+    ['user_id'=>'USR-000009','employee_id'=>'69009','prefix'=>'นาย','first_name'=>'สมหวัง', 'last_name'=>'ใจดี',    'username'=>'somwang',   'email'=>'somwang@yru.ac.th',   'phone_number'=>'089-012-3456','user_role'=>'Driver'],
+    ['user_id'=>'USR-000010','employee_id'=>'69010','prefix'=>'นาย','first_name'=>'สมใจ',   'last_name'=>'ใจดี',    'username'=>'somjai',    'email'=>'somjai@yru.ac.th',    'phone_number'=>'090-123-4567','user_role'=>'Driver'],
+    ['user_id'=>'USR-000011','employee_id'=>'69011','prefix'=>'นาย','first_name'=>'กิตติ',   'last_name'=>'ตั้งใจ',   'username'=>'kitti',     'email'=>'kitti@yru.ac.th',     'phone_number'=>'091-234-5678','user_role'=>'Driver'],
+    ['user_id'=>'USR-000012','employee_id'=>'69012','prefix'=>'นาย','first_name'=>'รุสลัน', 'last_name'=>'สอเฮาะ',  'username'=>'ruslan',    'email'=>'ruslan@yru.ac.th',    'phone_number'=>'092-345-6789','user_role'=>'Driver'],
+    // 13. ช่างซ่อมบำรุง
+    ['user_id'=>'USR-000013','employee_id'=>'69013','prefix'=>'นาย','first_name'=>'ประสาน', 'last_name'=>'งานดี',    'username'=>'prasan',    'email'=>'prasan.g@yru.ac.th',  'phone_number'=>'093-456-7890','user_role'=>'Mechanic'],
+    // 14. หัวหน้างานยานพาหนะ
+    ['user_id'=>'USR-000014','employee_id'=>'69014','prefix'=>'นาย','first_name'=>'ฮาดี',   'last_name'=>'ลือแมะ',  'username'=>'hadee',     'email'=>'hadee@yru.ac.th',     'phone_number'=>'094-567-8901','user_role'=>'VehicleHead'],
+    // 15-17. นักศึกษา
+    ['user_id'=>'USR-000015','employee_id'=>'406665014','prefix'=>'นางสาว','first_name'=>'ทัศนีย์','last_name'=>'สาและ',  'username'=>'406665014','email'=>'406665014@yru.ac.th','phone_number'=>'0635497741','user_role'=>'Student'],
+    ['user_id'=>'USR-000016','employee_id'=>'406665035','prefix'=>'นางสาว','first_name'=>'พิชญา', 'last_name'=>'ชุมมิคสา','username'=>'406665035','email'=>'406665035@yru.ac.th','phone_number'=>'0635497741','user_role'=>'Student'],
+    ['user_id'=>'USR-000017','employee_id'=>'406665025','prefix'=>'นางสาว','first_name'=>'วรนุช', 'last_name'=>'อาดำ',   'username'=>'406665025','email'=>'406665025@yru.ac.th','phone_number'=>'0635497741','user_role'=>'Student'],
 ];
 
 $results = [];
@@ -59,10 +66,38 @@ foreach ($users as $u) {
     $existing = $stmt->fetch();
 
     if ($existing) {
-        // อัปเดต password และ email_verified_at ให้ login ได้
+        // อัปเดตข้อมูลให้ตรงกับค่าจริง 100% (แก้ไขชื่อสะกดผิด, รหัสพนักงาน, เบอร์โทร, สิทธิ์)
         $updateParts = ['password = ?'];
         $params = [$userPassword];
 
+        if (in_array('name', $cols)) {
+            $updateParts[] = 'name = ?';
+            $params[] = $u['prefix'] . $u['first_name'] . ' ' . $u['last_name'];
+        }
+        if (in_array('employee_id', $cols)) {
+            $updateParts[] = 'employee_id = ?';
+            $params[] = $u['employee_id'];
+        }
+        if (in_array('prefix', $cols)) {
+            $updateParts[] = 'prefix = ?';
+            $params[] = $u['prefix'];
+        }
+        if (in_array('first_name', $cols)) {
+            $updateParts[] = 'first_name = ?';
+            $params[] = $u['first_name'];
+        }
+        if (in_array('last_name', $cols)) {
+            $updateParts[] = 'last_name = ?';
+            $params[] = $u['last_name'];
+        }
+        if (in_array('phone_number', $cols) && !empty($u['phone_number'])) {
+            $updateParts[] = 'phone_number = ?';
+            $params[] = $u['phone_number'];
+        }
+        if (in_array('user_role', $cols)) {
+            $updateParts[] = 'user_role = ?';
+            $params[] = $u['user_role'];
+        }
         if (in_array('status', $cols)) {
             $updateParts[] = "status = 'ใช้งาน'";
         }
@@ -76,7 +111,7 @@ foreach ($users as $u) {
         $params[] = $u['username'];
         $sql = 'UPDATE users SET ' . implode(', ', $updateParts) . ' WHERE username = ?';
         $pdo->prepare($sql)->execute($params);
-        $results[] = ['action' => 'updated', 'username' => $u['username'], 'email' => $u['email']];
+        $results[] = ['action' => 'updated', 'username' => $u['username'], 'name' => $u['prefix'] . $u['first_name'] . ' ' . $u['last_name'], 'employee_id' => $u['employee_id']];
     } else {
         // สร้างคอลัมน์ที่จะ insert (เฉพาะที่มีในตาราง)
         $insertCols = ['user_id', 'username', 'password', 'user_role', 'created_at', 'updated_at'];

@@ -60,6 +60,26 @@ class LoginController extends Controller
             ], 422);
         }
 
+        // ตรวจสอบสถานะบัญชีอย่างเข้มงวดเป็นอันดับแรก: หากถูกระงับการใช้งาน จะไม่อนุญาตให้เข้าสู่ระบบเด็ดขาด
+        $statusLower = strtolower(trim($user->status ?? ''));
+        $rightsLower = strtolower(trim($user->usage_rights ?? ''));
+
+        $isSuspended = in_array($statusLower, ['ระงับการใช้งาน', 'ระงับ', 'suspended', 'inactive', 'banned', 'blocked', 'disabled'])
+                    || in_array($rightsLower, ['ระงับการใช้งาน', 'ระงับ', 'suspended', 'inactive', 'banned', 'blocked', 'disabled'])
+                    || str_contains($statusLower, 'ระงับ')
+                    || str_contains($rightsLower, 'ระงับ')
+                    || str_contains($statusLower, 'suspend')
+                    || str_contains($rightsLower, 'suspend');
+
+        if ($isSuspended) {
+            return response()->json([
+                'status' => 'error',
+                'error_type' => 'account_suspended',
+                'title' => 'บัญชีถูกระงับการใช้งาน',
+                'message' => 'บัญชีผู้ใช้งานนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ'
+            ], 403);
+        }
+
         // ตรวจสอบรหัสผ่าน
         if (!\Illuminate\Support\Facades\Hash::check($password, $user->password)) {
             return response()->json([
@@ -67,20 +87,6 @@ class LoginController extends Controller
                 'error_type' => 'wrong_password',
                 'message' => 'รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง'
             ], 422);
-        }
-
-        // ตรวจสอบสถานะบัญชี (usage_rights / status)
-        $statusLower = strtolower(trim($user->status ?? ''));
-        $rightsLower = strtolower(trim($user->usage_rights ?? ''));
-        $isActive = in_array($statusLower, ['ใช้งาน', 'active', 'ใชงาน', 'ปกติ', 'normal', '']) 
-                 || in_array($rightsLower, ['active', 'ใช้งาน', 'ปกติ', 'suspended', '']) 
-                 || is_null($user->status);
-        if (!$isActive) {
-            return response()->json([
-                'status' => 'error',
-                'error_type' => 'account_suspended',
-                'message' => 'บัญชีของคุณถูกระงับการใช้งาน'
-            ], 403);
         }
 
         \Illuminate\Support\Facades\Auth::login($user, $request->has('remember'));

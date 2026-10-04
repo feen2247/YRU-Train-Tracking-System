@@ -22,3 +22,18 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Temporary and local test scripts
+test_ftp.php
+upload_fix.php
+test_check_cache.php
+
+# Duplicate flattened files in root
+/vendor_*
+/bootstrap_*
+/config_*
+/database_*
+/public_*
+/resources_*
+/routes_*
+/storage_*

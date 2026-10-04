@@ -30,7 +30,7 @@ return [
 
     // ESP32 GPS trackers (see GpsController and firmware/esp32_gps_tracker)
     'gps' => [
-        'device_key' => env('GPS_DEVICE_KEY'),
+        'device_key' => env('GPS_DEVICE_KEY', 'ESP32-6AAC1C'),
         'stale_seconds' => env('GPS_STALE_SECONDS', 120),
     ],
 

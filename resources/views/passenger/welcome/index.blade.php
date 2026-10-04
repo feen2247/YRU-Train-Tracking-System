@@ -94,11 +94,11 @@
         <div class="p-6">
             <p class="text-sm text-gray-500 font-light mb-5"></p>
 
-            <form id="mockLoginForm" class="space-y-4">
+            <form id="mockLoginForm" class="space-y-4" autocomplete="off">
                 @csrf
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700 mb-2">อีเมล หรือ รหัสนักศึกษา <span class="text-red-500">*</span></label>
-                    <input type="text" id="username" name="username" required
+                    <input type="text" id="username" name="username" required autocomplete="off"
                         class="w-full px-4 py-3 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none transition-all placeholder:text-gray-300 placeholder:text-base placeholder:font-light"
                         placeholder="อีเมล / รหัสนักศึกษา">
                     <div id="email-login-error" class="field-error">
@@ -111,7 +111,7 @@
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน <span class="text-red-500">*</span></label>
                     <div id="password-wrapper" class="flex flex-row items-center w-full border border-pink-200 rounded-lg focus-within:ring-2 focus-within:ring-pink-400 bg-white transition-all overflow-hidden relative z-10">
                         <input type="password" id="password" name="password" required
-                            autocomplete="current-password"
+                            autocomplete="new-password"
                             class="flex-1 w-full pl-4 py-3 outline-none border-none bg-transparent font-sans placeholder:text-gray-300 placeholder:text-base placeholder:font-light"
                             placeholder="••••••••">
                         <button type="button" id="togglePassword" class="flex-shrink-0 px-3 py-2 flex items-center justify-center text-gray-500 hover:text-pink-600 transition-colors focus:outline-none bg-transparent">
@@ -409,20 +409,86 @@
     </div>
 
     <script>
-        // โหลดรหัสผู้ใช้งานและรหัสผ่านจาก localStorage ที่บันทึกไว้ (ถ้ามี)
-        document.addEventListener("DOMContentLoaded", function() {
+        // ฟังก์ชันจัดการจดจำรหัสผ่าน: จะโหลดรหัสผ่านเฉพาะเมื่อผู้ใช้กดเลือก "จดจำฉันไว้" เท่านั้น
+        function applyRememberState() {
+            const isRemembered = localStorage.getItem("is_remembered") === "true";
             const savedUser = localStorage.getItem("remembered_username");
             const savedPass = localStorage.getItem("remembered_password");
+            const uInput = document.getElementById("username");
+            const pInput = document.getElementById("password");
             const rememberCheckbox = document.getElementById("remember");
 
-            if (savedUser && savedPass) {
-                document.getElementById("username").value = savedUser;
-                document.getElementById("password").value = savedPass;
-                if (rememberCheckbox) {
-                    rememberCheckbox.checked = true;
+            if (isRemembered && savedUser && savedPass) {
+                if (uInput) uInput.value = savedUser;
+                if (pInput) pInput.value = savedPass;
+                if (rememberCheckbox) rememberCheckbox.checked = true;
+            } else {
+                if (uInput) uInput.value = "";
+                if (pInput) pInput.value = "";
+                if (rememberCheckbox) rememberCheckbox.checked = false;
+                localStorage.removeItem("remembered_username");
+                localStorage.removeItem("remembered_password");
+                localStorage.removeItem("is_remembered");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            applyRememberState();
+            try {
+                sessionStorage.removeItem('yru_my_active_call_id');
+                sessionStorage.removeItem('yru_my_active_call_data');
+                sessionStorage.removeItem('yru_active_call');
+                sessionStorage.removeItem('yru_passenger_call');
+                sessionStorage.removeItem('yru_current_ride');
+                localStorage.removeItem('yru_my_active_call_id');
+                localStorage.removeItem('yru_my_active_call_data');
+                localStorage.removeItem('yru_latest_call');
+                localStorage.removeItem('yru_passenger_call');
+                localStorage.removeItem('yru_current_ride');
+                for (let i = 1; i <= 10; i++) {
+                    localStorage.removeItem('yru_latest_call_EV-' + String(i).padStart(2, '0'));
                 }
+            } catch(e) {}
+
+            const rememberCheckbox = document.getElementById("remember");
+            if (rememberCheckbox) {
+                rememberCheckbox.addEventListener("change", function() {
+                    if (!this.checked) {
+                        localStorage.removeItem("remembered_username");
+                        localStorage.removeItem("remembered_password");
+                        localStorage.removeItem("is_remembered");
+                    }
+                });
             }
         });
+
+        window.addEventListener("pageshow", function() {
+            applyRememberState();
+        });
+
+        // ล้างช่องกรอกทันทีหากไม่ได้กดจดจำรหัสผ่านไว้ เพื่อป้องกัน Browser Auto-fill อัตโนมัติ
+        if (localStorage.getItem("is_remembered") !== "true") {
+            setTimeout(function() {
+                if (localStorage.getItem("is_remembered") !== "true") {
+                    const uInput = document.getElementById("username");
+                    const pInput = document.getElementById("password");
+                    const rememberCheckbox = document.getElementById("remember");
+                    if (uInput) uInput.value = "";
+                    if (pInput) pInput.value = "";
+                    if (rememberCheckbox) rememberCheckbox.checked = false;
+                }
+            }, 50);
+            setTimeout(function() {
+                if (localStorage.getItem("is_remembered") !== "true") {
+                    const uInput = document.getElementById("username");
+                    const pInput = document.getElementById("password");
+                    const rememberCheckbox = document.getElementById("remember");
+                    if (uInput) uInput.value = "";
+                    if (pInput) pInput.value = "";
+                    if (rememberCheckbox) rememberCheckbox.checked = false;
+                }
+            }, 300);
+        }
 
         // === ฟังก์ชันแสดง/ซ่อน inline error messages ===
         function clearLoginErrors() {
@@ -532,9 +598,11 @@
                     if (remember) {
                         localStorage.setItem("remembered_username", u);
                         localStorage.setItem("remembered_password", p);
+                        localStorage.setItem("is_remembered", "true");
                     } else {
                         localStorage.removeItem("remembered_username");
                         localStorage.removeItem("remembered_password");
+                        localStorage.removeItem("is_remembered");
                     }
                     let targetUrl = data.redirect_url;
                     if (window.location.protocol === 'https:' && targetUrl.startsWith('http:')) {
